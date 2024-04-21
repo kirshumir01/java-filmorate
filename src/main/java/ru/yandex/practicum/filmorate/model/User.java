@@ -12,17 +12,17 @@ import java.time.LocalDate;
 @Data
 @Builder
 public class User {
-    protected Long id;
+    private Long id;
 
     @NotBlank
     @Email
-    protected String email;
+    private String email;
 
     @NotBlank
-    protected String login;
+    private String login;
 
-    protected String name;
+    private String name;
 
     @PastOrPresent
-    protected LocalDate birthday;
+    private LocalDate birthday;
 }

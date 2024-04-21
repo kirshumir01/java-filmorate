@@ -10,6 +10,7 @@ import ru.yandex.practicum.filmorate.model.User;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -19,24 +20,13 @@ public class UserControllerTest {
 
     @Test
     void validateUserOk() {
-        final User user = User.builder()
-                .email("user@yandex.ru")
-                .login("user")
-                .name("User Name")
-                .birthday(LocalDate.of(1990, 03, 24))
-                .build();
-
-        validator.validate(user);
+        generateDefaultUser(1);
+        validator.validate(userController.getUsers().get(0));
     }
 
     @Test
     void validateUserEmptyEmailFail() {
-        final User user = User.builder()
-                .email("")
-                .login("user")
-                .name("User Name")
-                .birthday(LocalDate.of(1990, 03, 24))
-                .build();
+        final User user = generateCustomUser("", "user", "User Name", LocalDate.of(1990, 03, 24));
 
         Exception exception = assertThrows(ValidationException.class,
                 () -> userController.validate(user));
@@ -45,12 +35,7 @@ public class UserControllerTest {
 
     @Test
     void validateUserEmailWithoutAtFail() {
-        final User user = User.builder()
-                .email("user.yandex.ru")
-                .login("user")
-                .name("User Name")
-                .birthday(LocalDate.of(1990, 03, 24))
-                .build();
+        final User user = generateCustomUser("user.yandex.ru", "user", "User Name", LocalDate.of(1990, 03, 24));
 
         Exception exception = assertThrows(ValidationException.class,
                 () -> userController.validate(user));
@@ -59,12 +44,7 @@ public class UserControllerTest {
 
     @Test
     void validateUserLoginFail() {
-        final User user = User.builder()
-                .email("user@yandex.ru")
-                .login("")
-                .name("User Name")
-                .birthday(LocalDate.of(1990, 03, 24))
-                .build();
+        final User user = generateCustomUser("user@yandex.ru", "", "User Name", LocalDate.of(1990, 03, 24));
 
         Exception exception = assertThrows(ValidationException.class,
                 () -> userController.validate(user));
@@ -73,12 +53,7 @@ public class UserControllerTest {
 
     @Test
     void validateUserNameAsLoginTest() {
-        final User user = User.builder()
-                .email("user@yandex.ru")
-                .login("user")
-                .name(null)
-                .birthday(LocalDate.of(1990, 03, 24))
-                .build();
+        final User user = generateCustomUser("user@yandex.ru", "user", null, LocalDate.of(1990, 03, 24));
 
         userController.createUser(user);
 
@@ -87,12 +62,7 @@ public class UserControllerTest {
 
     @Test
     void validateUserBirthdayFail() {
-        final User user = User.builder()
-                .email("user@yandex.ru")
-                .login("user")
-                .name("User Name")
-                .birthday(LocalDate.of(2990, 03, 24))
-                .build();
+        final User user = generateCustomUser("user@yandex.ru", "user", "User Name", LocalDate.of(2990, 03, 24));
 
         Exception exception = assertThrows(ValidationException.class,
                 () -> userController.validate(user));
@@ -102,19 +72,8 @@ public class UserControllerTest {
 
     @Test
     void createUserTestOk() {
-        User user1 = User.builder()
-                .email("user1@yandex.ru")
-                .login("user1")
-                .name("User1 Name")
-                .birthday(LocalDate.of(1990, 03, 24))
-                .build();
-
-        User user2 = User.builder()
-                .email("user2@yandex.ru")
-                .login("user2")
-                .name("User2 Name")
-                .birthday(LocalDate.of(1989, 06, 12))
-                .build();
+        final User user1 = generateCustomUser("user@yandex.ru", "user 1", "User Name", LocalDate.of(1990, 03, 24));
+        final User user2 = generateCustomUser("user@yandex.ru", "user 2", "User Name", LocalDate.of(1990, 03, 24));
 
         userController.createUser(user1);
         userController.createUser(user2);
@@ -130,19 +89,8 @@ public class UserControllerTest {
 
     @Test
     void updateUserTestOk() {
-        User user1 = User.builder()
-                .email("user1@yandex.ru")
-                .login("user1")
-                .name("User1 Name")
-                .birthday(LocalDate.of(1990, 03, 24))
-                .build();
-
-        User user2 = User.builder()
-                .email("user2@yandex.ru")
-                .login("user2")
-                .name("User2 Name")
-                .birthday(LocalDate.of(1989, 06, 12))
-                .build();
+        final User user1 = generateCustomUser("user@yandex.ru", "user 1", "User Name", LocalDate.of(1990, 03, 24));
+        final User user2 = generateCustomUser("user@yandex.ru", "user 2", "User Name", LocalDate.of(1990, 03, 24));
 
         userController.createUser(user1);
         user2.setId(user1.getId());
@@ -155,19 +103,8 @@ public class UserControllerTest {
 
     @Test
     void validateIdNotSetForUpdateFail() {
-        User user1 = User.builder()
-                .email("user1@yandex.ru")
-                .login("user1")
-                .name("User1 Name")
-                .birthday(LocalDate.of(1990, 03, 24))
-                .build();
-
-        User user2 = User.builder()
-                .email("user2@yandex.ru")
-                .login("user2")
-                .name("User2 Name")
-                .birthday(LocalDate.of(1989, 06, 12))
-                .build();
+        final User user1 = generateCustomUser("user@yandex.ru", "user 1", "User Name", LocalDate.of(1990, 03, 24));
+        final User user2 = generateCustomUser("user@yandex.ru", "user 2", "User Name", LocalDate.of(1990, 03, 24));
 
         userController.createUser(user1);
 
@@ -178,5 +115,31 @@ public class UserControllerTest {
         ValidationException thrown = Assertions.assertThrows(ValidationException.class,
                 () -> userController.updateUserData(user2), "Ожидалось получение исключения");
         assertEquals("Идентификатор пользователя должен быть указан", thrown.getMessage());
+    }
+
+    private void generateDefaultUser(int count) {
+        Stream.generate(() -> User.builder()
+                        .id(null)
+                        .email("user@yandex.ru")
+                        .login("user")
+                        .name("User Name")
+                        .birthday(LocalDate.of(1990, 03, 24))
+                        .build())
+                .limit(count)
+                .forEach(userController::createUser);
+    }
+
+    private User generateCustomUser(
+            String email,
+            String login,
+            String name,
+            LocalDate birthday) {
+        User user = User.builder()
+                .email(email)
+                .login(login)
+                .name(name)
+                .birthday(birthday)
+                .build();
+        return user;
     }
 }

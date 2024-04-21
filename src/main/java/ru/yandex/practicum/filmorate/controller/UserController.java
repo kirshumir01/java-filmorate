@@ -21,7 +21,7 @@ public class UserController {
 
     @PostMapping
     public User createUser(@Valid @RequestBody User user) {
-        // validate(user);
+        validate(user);
         checkUserName(user);
         user.setId(getNextId());
         users.put(user.getId(), user);
@@ -31,7 +31,7 @@ public class UserController {
 
     @PutMapping
     public User updateUserData(@Valid @RequestBody User newUser) {
-        // validate(newUser);
+        validate(newUser);
         checkUserName(newUser);
         findUserById(newUser);
         users.put(newUser.getId(), newUser);
@@ -54,7 +54,6 @@ public class UserController {
             log.debug("Имя пользователя задано при создании");
         }
     }
-
 
     public void validate(User user) {
         if (user.getEmail().isEmpty() || user.getEmail().isBlank()) {

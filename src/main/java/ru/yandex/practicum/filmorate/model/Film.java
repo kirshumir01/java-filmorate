@@ -1,7 +1,7 @@
 package ru.yandex.practicum.filmorate.model;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
 import lombok.Builder;
@@ -14,20 +14,20 @@ import java.time.LocalDate;
 @Data
 @Builder
 public class Film {
-    protected Long id;
+    private Long id;
 
-    @NotNull
-    protected String name;
+    @NotBlank
+    private String name;
 
-    @NotNull
+    @NotBlank
     @Size(max = 200)
-    protected String description;
+    private String description;
 
     @ReleaseDate
     @JsonFormat(pattern = "yyyy-MM-dd")
     @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
-    protected LocalDate releaseDate;
+    private LocalDate releaseDate;
 
     @Positive
-    protected int duration;
+    private int duration;
 }
