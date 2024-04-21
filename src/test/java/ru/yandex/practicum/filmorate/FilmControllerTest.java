@@ -1,7 +1,9 @@
 package ru.yandex.practicum.filmorate;
 
+import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validation;
 import jakarta.validation.Validator;
+import lombok.AllArgsConstructor;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -10,6 +12,7 @@ import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
 
@@ -21,6 +24,12 @@ public class FilmControllerTest {
 
     private final Validator validator = Validation.buildDefaultValidatorFactory().getValidator();
 
+    @AllArgsConstructor
+    static class ExpectedViolation {
+        String propertyPath;
+        String message;
+    }
+
     @Test
     void validateFilmOk() {
         generateDefaultFilm(1);
@@ -31,36 +40,45 @@ public class FilmControllerTest {
     void validateFilmEmptyNameFail() {
         final Film film = generateCustomFilm("", "Film description", LocalDate.of(2007, 05, 31), 135);
 
-        Exception exception = assertThrows(ValidationException.class,
-                () -> filmController.validate(film));
-        assertEquals("Название фильма не должно быть пустым", exception.getMessage());
+        List<ConstraintViolation<Film>> violations = new ArrayList<>(validator.validate(film));
+        ExpectedViolation expectedViolation = new ExpectedViolation("name", "must not be blank");
+        assertEquals(expectedViolation.propertyPath, violations.get(0).getPropertyPath().toString());
+        assertEquals(expectedViolation.message, violations.get(0).getMessage());
+        assertEquals(1, violations.size());
     }
 
     @Test
     void validateFilmTooLongDescriptionFail() {
         final Film film = generateCustomFilm("Test film", "Film description".repeat(20), LocalDate.of(2007, 05, 31), 135);
 
-        Exception exception = assertThrows(ValidationException.class,
-                () -> filmController.validate(film));
-        assertEquals("Описание должно содержать не более 200 символов", exception.getMessage());
+        List<ConstraintViolation<Film>> violations = new ArrayList<>(validator.validate(film));
+        ExpectedViolation expectedViolation = new ExpectedViolation("description", "size must be between 0 and 200");
+        assertEquals(expectedViolation.propertyPath, violations.get(0).getPropertyPath().toString());
+        assertEquals(expectedViolation.message, violations.get(0).getMessage());
+        assertEquals(1, violations.size());
     }
 
     @Test
     void validateFilmReleaseDateFail() {
         final Film film = generateCustomFilm("Test film", "Film description", LocalDate.of(1894, 01, 01), 135);
 
-        Exception exception = assertThrows(ValidationException.class,
-                () -> filmController.validate(film));
-        assertEquals("Дата релиза должна быть не раньше 28.12.1895", exception.getMessage());
+        List<ConstraintViolation<Film>> violations = new ArrayList<>(validator.validate(film));
+        ExpectedViolation expectedViolation = new ExpectedViolation("releaseDate", "date must be after 28.12.1985");
+        assertEquals(expectedViolation.propertyPath, violations.get(0).getPropertyPath().toString());
+        assertEquals(expectedViolation.message, violations.get(0).getMessage());
+        assertEquals(1, violations.size());
     }
 
     @Test
     void validateFilmDurationFail() {
         final Film film = generateCustomFilm("Test film", "Film description", LocalDate.of(2007, 05, 31), -135);
 
-        Exception exception = assertThrows(ValidationException.class,
-                () -> filmController.validate(film));
-        assertEquals("Продолжительность фильма не может быть отрицательным числом", exception.getMessage());
+        List<ConstraintViolation<Film>> violations = new ArrayList<>(validator.validate(film));
+        ExpectedViolation expectedViolation = new ExpectedViolation("duration",
+                "must be greater than 0");
+        assertEquals(expectedViolation.propertyPath, violations.get(0).getPropertyPath().toString());
+        assertEquals(expectedViolation.message, violations.get(0).getMessage());
+        assertEquals(1, violations.size());
     }
 
     @Test
@@ -100,10 +118,6 @@ public class FilmControllerTest {
         final Film film2 = generateCustomFilm("Test film 2", "Film description", LocalDate.of(2000, 05, 01), 155);
 
         filmController.addFilm(film1);
-
-        Exception exception = assertThrows(ValidationException.class,
-                () -> filmController.findFilmById(film2));
-        assertEquals("Идентификатор фильма должен быть указан", exception.getMessage());
 
         ValidationException thrown = Assertions.assertThrows(ValidationException.class,
                 () -> filmController.updateFilmData(film2), "Ожидалось получение исключения");

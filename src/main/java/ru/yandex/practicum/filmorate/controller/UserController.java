@@ -6,7 +6,6 @@ import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
 
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -21,7 +20,6 @@ public class UserController {
 
     @PostMapping
     public User createUser(@Valid @RequestBody User user) {
-        validate(user);
         checkUserName(user);
         user.setId(getNextId());
         users.put(user.getId(), user);
@@ -31,9 +29,7 @@ public class UserController {
 
     @PutMapping
     public User updateUserData(@Valid @RequestBody User newUser) {
-        validate(newUser);
-        checkUserName(newUser);
-        findUserById(newUser);
+        checkUserId(newUser);
         users.put(newUser.getId(), newUser);
         log.info("Информация о пользователе с идентификатором " + newUser.getId() + " обновлена");
         return newUser;
@@ -55,30 +51,7 @@ public class UserController {
         }
     }
 
-    public void validate(User user) {
-        if (user.getEmail().isEmpty() || user.getEmail().isBlank()) {
-            log.error("Адрес электронной почты введен некорректно");
-            throw new ValidationException("Адрес электронной почты не должно быть пустым или содержать пробелы");
-        }
-
-        if (!user.getEmail().contains("@")) {
-            log.error("Адрес электронной почты введен некорректно");
-            throw new ValidationException("Адрес электронной почты должен содержать символ '@'");
-        }
-
-        if (user.getLogin().isEmpty() || user.getLogin().isBlank()) {
-            log.error("Логин введен некорректно");
-            throw new ValidationException("Логин не должен быть пустым или содержать пробелы");
-        }
-
-        if (user.getBirthday().isAfter(LocalDate.now())) {
-            log.error("Дата рождения введена некорректно");
-            throw new ValidationException("Дата рождения не должна быть позднее текущей даты");
-        }
-    }
-
-
-    public void findUserById(User user) {
+    private void checkUserId(User user) {
         if (user.getId() == null) {
             log.error("Идентификатор пользователя отсутствует");
             throw new ValidationException("Идентификатор пользователя должен быть указан");

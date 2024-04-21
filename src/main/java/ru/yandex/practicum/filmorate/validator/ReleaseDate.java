@@ -13,7 +13,7 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Constraint(validatedBy = ReleaseDateValidator.class)
 public @interface ReleaseDate {
-    String message() default "Дата выхода фильма в прокат не должна быть раньше 28.12.1895";
+    String message() default "date must be after 28.12.1985";
 
     // каждая аннотация к ограничению должна определять элемент groups,
     // который определяет группы обработки, связанными с объявлением ограничения

@@ -50,6 +50,3 @@ db/*
 
 # other files
 README.md
-
-#исключить игнорирование GSON
-!lib/gson-2.10.1.jar

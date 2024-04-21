@@ -1,7 +1,9 @@
 package ru.yandex.practicum.filmorate;
 
+import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validation;
 import jakarta.validation.Validator;
+import lombok.AllArgsConstructor;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import ru.yandex.practicum.filmorate.controller.UserController;
@@ -9,6 +11,7 @@ import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
 
@@ -17,6 +20,12 @@ import static org.junit.jupiter.api.Assertions.*;
 public class UserControllerTest {
     static UserController userController = new UserController();
     private final Validator validator = Validation.buildDefaultValidatorFactory().getValidator();
+
+    @AllArgsConstructor
+    static class ExpectedViolation {
+        String propertyPath;
+        String message;
+    }
 
     @Test
     void validateUserOk() {
@@ -28,34 +37,41 @@ public class UserControllerTest {
     void validateUserEmptyEmailFail() {
         final User user = generateCustomUser("", "user", "User Name", LocalDate.of(1990, 03, 24));
 
-        Exception exception = assertThrows(ValidationException.class,
-                () -> userController.validate(user));
-        assertEquals("Адрес электронной почты не должно быть пустым или содержать пробелы", exception.getMessage());
+        List<ConstraintViolation<User>> violations = new ArrayList<>(validator.validate(user));
+        ExpectedViolation expectedViolation = new ExpectedViolation("email", "must not be blank");
+        assertEquals(expectedViolation.propertyPath, violations.get(0).getPropertyPath().toString());
+        assertEquals(expectedViolation.message, violations.get(0).getMessage());
+        assertEquals(1, violations.size());
     }
 
     @Test
     void validateUserEmailWithoutAtFail() {
         final User user = generateCustomUser("user.yandex.ru", "user", "User Name", LocalDate.of(1990, 03, 24));
 
-        Exception exception = assertThrows(ValidationException.class,
-                () -> userController.validate(user));
-        assertEquals("Адрес электронной почты должен содержать символ '@'", exception.getMessage());
+        List<ConstraintViolation<User>> violations = new ArrayList<>(validator.validate(user));
+        ExpectedViolation expectedViolation = new ExpectedViolation("email", "must be a well-formed email address");
+        assertEquals(expectedViolation.propertyPath, violations.get(0).getPropertyPath().toString());
+        assertEquals(expectedViolation.message, violations.get(0).getMessage());
+        assertEquals(1, violations.size());
     }
 
     @Test
     void validateUserLoginFail() {
         final User user = generateCustomUser("user@yandex.ru", "", "User Name", LocalDate.of(1990, 03, 24));
 
-        Exception exception = assertThrows(ValidationException.class,
-                () -> userController.validate(user));
-        assertEquals("Логин не должен быть пустым или содержать пробелы", exception.getMessage());
+        List<ConstraintViolation<User>> violations = new ArrayList<>(validator.validate(user));
+        ExpectedViolation expectedViolation = new ExpectedViolation("login", "must not be blank");
+        assertEquals(expectedViolation.propertyPath, violations.get(0).getPropertyPath().toString());
+        assertEquals(expectedViolation.message, violations.get(0).getMessage());
+        assertEquals(1, violations.size());
     }
 
     @Test
     void validateUserNameAsLoginTest() {
         final User user = generateCustomUser("user@yandex.ru", "user", null, LocalDate.of(1990, 03, 24));
-
         userController.createUser(user);
+
+        validator.validate(user);
 
         assertEquals(user.getLogin(), user.getName());
     }
@@ -64,10 +80,12 @@ public class UserControllerTest {
     void validateUserBirthdayFail() {
         final User user = generateCustomUser("user@yandex.ru", "user", "User Name", LocalDate.of(2990, 03, 24));
 
-        Exception exception = assertThrows(ValidationException.class,
-                () -> userController.validate(user));
-
-        assertEquals("Дата рождения не должна быть позднее текущей даты", exception.getMessage());
+        List<ConstraintViolation<User>> violations = new ArrayList<>(validator.validate(user));
+        ExpectedViolation expectedViolation = new ExpectedViolation("birthday",
+                "must be a date in the past or in the present");
+        assertEquals(expectedViolation.propertyPath, violations.get(0).getPropertyPath().toString());
+        assertEquals(expectedViolation.message, violations.get(0).getMessage());
+        assertEquals(1, violations.size());
     }
 
     @Test
@@ -107,10 +125,6 @@ public class UserControllerTest {
         final User user2 = generateCustomUser("user@yandex.ru", "user 2", "User Name", LocalDate.of(1990, 03, 24));
 
         userController.createUser(user1);
-
-        Exception exception = assertThrows(ValidationException.class,
-                () -> userController.findUserById(user2));
-        assertEquals("Идентификатор пользователя должен быть указан", exception.getMessage());
 
         ValidationException thrown = Assertions.assertThrows(ValidationException.class,
                 () -> userController.updateUserData(user2), "Ожидалось получение исключения");
