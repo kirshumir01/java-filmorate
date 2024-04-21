@@ -17,7 +17,7 @@ public class FilmController {
 
     private static final int MAX_DESCRIPTION_SIZE = 200;
 
-    private final LocalDate FIRST_CINEMA_RELEASE_DATE = LocalDate.of(1895, 12, 28);
+    private static final LocalDate FIRST_CINEMA_RELEASE_DATE = LocalDate.of(1895, 12, 28);
 
     private final Map<Long, Film> films = new HashMap<>();
 
@@ -53,7 +53,8 @@ public class FilmController {
 
         if (!films.containsKey(film.getId())) {
             log.error("Ошибка поиска фильма по идентификатору: " + film.getId());
-            throw new ValidationException("Фильм с id = " + film.getId() + " не найден");        }
+            throw new ValidationException("Фильм с id = " + film.getId() + " не найден");
+        }
     }
 
     public void validate(Film film) {
@@ -67,7 +68,7 @@ public class FilmController {
             throw new ValidationException("Описание должно содержать не более 200 символов");
         }
 
-        if (film.getReleaseDate().isBefore(FIRST_CINEMA_RELEASE_DATE) ) {
+        if (film.getReleaseDate().isBefore(FIRST_CINEMA_RELEASE_DATE)) {
             log.error("Дата релиза фильма введена некорректно");
             throw new ValidationException("Дата релиза должна быть не раньше " +
                     FIRST_CINEMA_RELEASE_DATE.format(DateTimeFormatter.ofPattern("dd.MM.yyyy")));
