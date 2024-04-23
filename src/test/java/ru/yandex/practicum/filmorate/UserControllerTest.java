@@ -30,7 +30,7 @@ public class UserControllerTest {
     @Test
     void validateUserOk() {
         generateDefaultUser(1);
-        validator.validate(userController.getUsers().get(0));
+        validator.validate(userController.getAll().get(0));
     }
 
     @Test
@@ -69,7 +69,7 @@ public class UserControllerTest {
     @Test
     void validateUserNameAsLoginTest() {
         final User user = generateCustomUser("user@yandex.ru", "user", null, LocalDate.of(1990, 03, 24));
-        userController.createUser(user);
+        userController.create(user);
 
         validator.validate(user);
 
@@ -93,12 +93,12 @@ public class UserControllerTest {
         final User user1 = generateCustomUser("user@yandex.ru", "user 1", "User Name", LocalDate.of(1990, 03, 24));
         final User user2 = generateCustomUser("user@yandex.ru", "user 2", "User Name", LocalDate.of(1990, 03, 24));
 
-        userController.createUser(user1);
-        userController.createUser(user2);
+        userController.create(user1);
+        userController.create(user2);
 
-        final User savedUser1 = userController.getUsers().get(Math.toIntExact(user1.getId()) - 1);
-        final User savedUser2 = userController.getUsers().get(Math.toIntExact(user2.getId()) - 1);
-        final List<User> users = userController.getUsers();
+        final User savedUser1 = userController.getAll().get(Math.toIntExact(user1.getId()) - 1);
+        final User savedUser2 = userController.getAll().get(Math.toIntExact(user2.getId()) - 1);
+        final List<User> users = userController.getAll();
 
         assertNotNull(users, "Информация о пользователях не возвращается");
         assertEquals(user1, savedUser1, "Информация о пользователе не соответствует");
@@ -110,11 +110,11 @@ public class UserControllerTest {
         final User user1 = generateCustomUser("user@yandex.ru", "user 1", "User Name", LocalDate.of(1990, 03, 24));
         final User user2 = generateCustomUser("user@yandex.ru", "user 2", "User Name", LocalDate.of(1990, 03, 24));
 
-        userController.createUser(user1);
+        userController.create(user1);
         user2.setId(user1.getId());
-        userController.updateUserData(user2);
+        userController.update(user2);
 
-        final User updatedUser = userController.getUsers().get(Math.toIntExact(user1.getId()) - 1);
+        final User updatedUser = userController.getAll().get(Math.toIntExact(user1.getId()) - 1);
 
         assertEquals(user2, updatedUser, "Информация о пользователе не соответствует");
     }
@@ -124,11 +124,11 @@ public class UserControllerTest {
         final User user1 = generateCustomUser("user@yandex.ru", "user 1", "User Name", LocalDate.of(1990, 03, 24));
         final User user2 = generateCustomUser("user@yandex.ru", "user 2", "User Name", LocalDate.of(1990, 03, 24));
 
-        userController.createUser(user1);
+        userController.create(user1);
 
         ValidationException thrown = Assertions.assertThrows(ValidationException.class,
-                () -> userController.updateUserData(user2), "Ожидалось получение исключения");
-        assertEquals("Идентификатор пользователя должен быть указан", thrown.getMessage());
+                () -> userController.update(user2), "Ожидалось получение исключения");
+        assertEquals("Пользователь с id = null не найден", thrown.getMessage());
     }
 
     private void generateDefaultUser(int count) {
@@ -140,7 +140,7 @@ public class UserControllerTest {
                         .birthday(LocalDate.of(1990, 03, 24))
                         .build())
                 .limit(count)
-                .forEach(userController::createUser);
+                .forEach(userController::create);
     }
 
     private User generateCustomUser(

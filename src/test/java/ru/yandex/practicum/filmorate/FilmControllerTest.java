@@ -33,7 +33,7 @@ public class FilmControllerTest {
     @Test
     void validateFilmOk() {
         generateDefaultFilm(1);
-        validator.validate(filmController.getFilms().get(0));
+        validator.validate(filmController.getAll().get(0));
     }
 
     @Test
@@ -86,12 +86,12 @@ public class FilmControllerTest {
         final Film film1 = generateCustomFilm("Test film 1", "Film description", LocalDate.of(2007, 05, 31), 135);
         final Film film2 = generateCustomFilm("Test film 2", "Film description", LocalDate.of(2007, 05, 31), 135);
 
-        filmController.addFilm(film1);
-        filmController.addFilm(film2);
+        filmController.create(film1);
+        filmController. create(film2);
 
-        final Film savedFilm1 = filmController.getFilms().get(Math.toIntExact(film1.getId()) - 1);
-        final Film savedFilm2 = filmController.getFilms().get(Math.toIntExact(film2.getId()) - 1);
-        final List<Film> films = filmController.getFilms();
+        final Film savedFilm1 = filmController.getAll().get(Math.toIntExact(film1.getId()) - 1);
+        final Film savedFilm2 = filmController.getAll().get(Math.toIntExact(film2.getId()) - 1);
+        final List<Film> films = filmController.getAll();
 
         assertNotNull(films, "Информация о фильмах не возвращается");
         assertEquals(film1, savedFilm1, "Информация о фильме не соответствует");
@@ -103,11 +103,11 @@ public class FilmControllerTest {
         final Film film1 = generateCustomFilm("Test film 1", "Film description", LocalDate.of(2007, 05, 31), 135);
         final Film film2 = generateCustomFilm("Test film 2", "Film description", LocalDate.of(2000, 05, 01), 155);
 
-        filmController.addFilm(film1);
+        filmController.create(film1);
         film2.setId(film1.getId());
-        filmController.updateFilmData(film2);
+        filmController.update(film2);
 
-        final Film updatedFilm = filmController.getFilms().get(Math.toIntExact(film1.getId()) - 1);
+        final Film updatedFilm = filmController.getAll().get(Math.toIntExact(film1.getId()) - 1);
 
         assertEquals(film2, updatedFilm, "Информация о фильме не соответствует");
     }
@@ -117,11 +117,11 @@ public class FilmControllerTest {
         final Film film1 = generateCustomFilm("Test film 1", "Film description", LocalDate.of(2007, 05, 31), 135);
         final Film film2 = generateCustomFilm("Test film 2", "Film description", LocalDate.of(2000, 05, 01), 155);
 
-        filmController.addFilm(film1);
+        filmController.create(film1);
 
         ValidationException thrown = Assertions.assertThrows(ValidationException.class,
-                () -> filmController.updateFilmData(film2), "Ожидалось получение исключения");
-        assertEquals("Идентификатор фильма должен быть указан", thrown.getMessage());
+                () -> filmController.update(film2), "Ожидалось получение исключения");
+        assertEquals("Фильм с id = null не найден", thrown.getMessage());
     }
 
     private void generateDefaultFilm(int count) {
@@ -133,7 +133,7 @@ public class FilmControllerTest {
                 .duration(135)
                 .build())
             .limit(count)
-            .forEach(filmController::addFilm);
+            .forEach(filmController::create);
     }
 
     private Film generateCustomFilm(

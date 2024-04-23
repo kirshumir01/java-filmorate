@@ -2,6 +2,7 @@ package ru.yandex.practicum.filmorate.controller;
 
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
@@ -16,19 +17,21 @@ import java.util.Map;
 @RequestMapping("/users")
 public class UserController {
 
+    private long currentId = 0;
+
     private final Map<Long, User> users = new HashMap<>();
 
     @PostMapping
-    public User createUser(@Valid @RequestBody User user) {
+    public User create(@Valid @RequestBody User user) {
         checkUserName(user);
-        user.setId(getNextId());
+        user.setId(++currentId);
         users.put(user.getId(), user);
         log.info("Информация о новом пользователе сохранена");
         return user;
     }
 
     @PutMapping
-    public User updateUserData(@Valid @RequestBody User newUser) {
+    public User update(@Valid @Validated @RequestBody User newUser) {
         checkUserId(newUser);
         users.put(newUser.getId(), newUser);
         log.info("Информация о пользователе с идентификатором " + newUser.getId() + " обновлена");
@@ -36,7 +39,7 @@ public class UserController {
     }
 
     @GetMapping
-    public List<User> getUsers() {
+    public List<User> getAll() {
         log.info("Получена информация о данных всех сохраненных пользователей");
         return new ArrayList<>(users.values());
     }
@@ -52,23 +55,9 @@ public class UserController {
     }
 
     private void checkUserId(User user) {
-        if (user.getId() == null) {
-            log.error("Идентификатор пользователя отсутствует");
-            throw new ValidationException("Идентификатор пользователя должен быть указан");
-        }
-
         if (!users.containsKey(user.getId())) {
             log.error("Ошибка поиска пользователя по идентификатору: " + user.getId());
             throw new ValidationException("Пользователь с id = " + user.getId() + " не найден");
         }
-    }
-
-    private long getNextId() {
-        long currentMaxId = users.keySet()
-                .stream()
-                .mapToLong(id -> id)
-                .max()
-                .orElse(0);
-        return ++currentMaxId;
     }
 }
