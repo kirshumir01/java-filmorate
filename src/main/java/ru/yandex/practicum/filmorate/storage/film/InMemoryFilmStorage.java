@@ -62,7 +62,7 @@ public class InMemoryFilmStorage extends StorageData implements FilmStorage {
     }
 
     private void checkFilmId(Film film) {
-        if(film.getId() == null || film.getId() <= 0) {
+        if (film.getId() == null || film.getId() <= 0) {
             log.debug("Идентификатор отсутствует или имеет некорректный формат");
             throw new ValidationException("Идентификатор должен быть задан");
         }

@@ -73,7 +73,7 @@ public class InMemoryUserStorage extends StorageData implements UserStorage {
     }
 
     private void checkUserId(User user) {
-        if(user.getId() == null || user.getId() <= 0) {
+        if (user.getId() == null || user.getId() <= 0) {
             log.debug("Идентификатор отсутствует или имеет некорректный формат");
             throw new ValidationException("Идентификатор должен быть задан");
         }
