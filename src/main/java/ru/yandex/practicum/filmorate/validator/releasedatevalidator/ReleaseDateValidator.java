@@ -1,4 +1,4 @@
-package ru.yandex.practicum.filmorate.validator;
+package ru.yandex.practicum.filmorate.validator.releasedatevalidator;
 
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
