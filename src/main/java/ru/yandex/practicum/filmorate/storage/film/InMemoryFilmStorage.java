@@ -80,6 +80,7 @@ public class InMemoryFilmStorage implements FilmStorage {
 
         return popularFilms;
     }
+
     @Override
     public Map<Long, Set<Long>> getLikesByFilms() {
         return new HashMap<>(likesByFilms);
