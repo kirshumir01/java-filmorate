@@ -9,11 +9,11 @@ import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 import ru.yandex.practicum.filmorate.controller.film.FilmController;
 import ru.yandex.practicum.filmorate.controller.user.UserController;
-import ru.yandex.practicum.filmorate.exception.ValidationException;
+import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.film.Film;
 import ru.yandex.practicum.filmorate.model.user.User;
-import ru.yandex.practicum.filmorate.service.film.FilmService;
-import ru.yandex.practicum.filmorate.service.user.UserService;
+import ru.yandex.practicum.filmorate.service.film.FilmServiceManager;
+import ru.yandex.practicum.filmorate.service.user.UserServiceManager;
 import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
 import ru.yandex.practicum.filmorate.storage.film.InMemoryFilmStorage;
 import ru.yandex.practicum.filmorate.storage.user.InMemoryUserStorage;
@@ -30,9 +30,8 @@ import static org.junit.jupiter.api.Assertions.*;
 public class FilmControllerTest {
     private final FilmStorage filmStorage = new InMemoryFilmStorage();
     private final UserStorage userStorage = new InMemoryUserStorage();
-    private final FilmController filmController =
-            new FilmController(new FilmService(filmStorage, new UserService(userStorage)));
-    private final UserController userController = new UserController(new UserService(userStorage));
+    private final FilmController filmController = new FilmController(new FilmServiceManager(filmStorage, userStorage));
+    private final UserController userController = new UserController(new UserServiceManager(userStorage));
     private final Validator validator = Validation.buildDefaultValidatorFactory().getValidator();
 
     @AllArgsConstructor
@@ -158,9 +157,9 @@ public class FilmControllerTest {
 
         filmController.create(film1);
 
-        ValidationException thrown = Assertions.assertThrows(ValidationException.class,
+        NotFoundException thrown = Assertions.assertThrows(NotFoundException.class,
                 () -> filmController.update(film2), "Ожидалось получение исключения");
-        assertEquals("Идентификатор должен быть задан", thrown.getMessage());
+        assertEquals("Информация о фильме отсутствует", thrown.getMessage());
     }
 
     @Test
@@ -187,8 +186,8 @@ public class FilmControllerTest {
 
         filmController.addLike(film.getId(), user.getId());
 
-        assertNotNull(film.getLikes(), "Информация о лайках отсутствует");
-        assertTrue(film.getLikes().contains(user.getId()), "Информация о лайках отсутствует");
+        assertNotNull(filmStorage.getLikesByFilms().get(film.getId()), "Информация о лайках отсутствует");
+        assertTrue(filmStorage.getLikesByFilms().get(film.getId()).contains(user.getId()), "Информация о лайках отсутствует");
     }
 
     @Test
@@ -202,7 +201,7 @@ public class FilmControllerTest {
         filmController.addLike(film.getId(), user.getId());
         filmController.deleteLike(film.getId(), user.getId());
 
-        assertTrue(film.getLikes().isEmpty(), "Лайки к фильму не удалены");
+        assertTrue(filmStorage.getLikesByFilms().get(film.getId()).isEmpty(), "Лайки к фильму не удалены");
     }
 
     @Test

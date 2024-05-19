@@ -2,7 +2,7 @@ package ru.yandex.practicum.filmorate.service;
 
 import org.junit.jupiter.api.Test;
 import ru.yandex.practicum.filmorate.model.user.User;
-import ru.yandex.practicum.filmorate.service.user.UserService;
+import ru.yandex.practicum.filmorate.service.user.UserServiceManager;
 import ru.yandex.practicum.filmorate.storage.user.InMemoryUserStorage;
 import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 
@@ -13,7 +13,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 public class UserServiceTest {
     private final UserStorage userStorage = new InMemoryUserStorage();
-    private final UserService userService = new UserService(userStorage);
+    private final UserServiceManager userService = new UserServiceManager(userStorage);
 
     @Test
     void getAllUsersTestOk() {
@@ -98,10 +98,12 @@ public class UserServiceTest {
 
         userService.addFriend(user1.getId(), user2.getId());
 
-        assertNotNull(user1.getFriends(), "Информация о друзьях отсутствует");
-        assertNotNull(user2.getFriends(), "Информация о друзьях отсутствует");
-        assertTrue(user1.getFriends().contains(user2.getId()), "Информация о друзьях отсутствует");
-        assertTrue(user2.getFriends().contains(user1.getId()), "Информация о друзьях отсутствует");
+        assertNotNull(userStorage.getFriendsByUsers().get(user1.getId()), "Информация о друзьях отсутствует");
+        assertNotNull(userStorage.getFriendsByUsers().get(user2.getId()), "Информация о друзьях отсутствует");
+        assertTrue(userStorage.getFriendsByUsers().get(user1.getId()).contains(user2.getId()),
+                "Информация о друзьях отсутствует");
+        assertTrue(userStorage.getFriendsByUsers().get(user2.getId()).contains(user1.getId()),
+                "Информация о друзьях отсутствует");
     }
 
     @Test
@@ -115,8 +117,8 @@ public class UserServiceTest {
         userService.addFriend(user1.getId(), user2.getId());
         userService.deleteFriend(user1.getId(), user2.getId());
 
-        assertTrue(user1.getFriends().isEmpty(), "Список друзей пользователя не пуст");
-        assertTrue(user2.getFriends().isEmpty(), "Список друзей пользователя не пуст");
+        assertTrue(userStorage.getFriendsByUsers().get(user1.getId()).isEmpty(), "Список друзей пользователя не пуст");
+        assertTrue(userStorage.getFriendsByUsers().get(user2.getId()).isEmpty(), "Список друзей пользователя не пуст");
     }
 
     @Test
@@ -150,8 +152,10 @@ public class UserServiceTest {
         userService.addFriend(user2.getId(), user3.getId());
 
         final List<User> commonFriends = userService.getCommonFriends(user1.getId(), user2.getId());
+        final List<User> notCommonFriends = userService.getCommonFriends(user1.getId(), user3.getId());
 
-        assertEquals(user3, commonFriends.getFirst(), "Информация о друзьях не соответствует");
+        assertTrue(commonFriends.contains(user3), "Информация о друзьях не соответствует");
+        assertTrue(notCommonFriends.isEmpty(), "Обнаружены общие друзья");
     }
 
     private User generateCustomUser(

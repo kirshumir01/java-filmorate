@@ -4,7 +4,9 @@ import org.junit.jupiter.api.Test;
 import ru.yandex.practicum.filmorate.model.film.Film;
 import ru.yandex.practicum.filmorate.model.user.User;
 import ru.yandex.practicum.filmorate.service.film.FilmService;
+import ru.yandex.practicum.filmorate.service.film.FilmServiceManager;
 import ru.yandex.practicum.filmorate.service.user.UserService;
+import ru.yandex.practicum.filmorate.service.user.UserServiceManager;
 import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
 import ru.yandex.practicum.filmorate.storage.film.InMemoryFilmStorage;
 import ru.yandex.practicum.filmorate.storage.user.InMemoryUserStorage;
@@ -18,8 +20,8 @@ import static org.junit.jupiter.api.Assertions.*;
 public class FilmServiceTest {
     private final FilmStorage filmStorage = new InMemoryFilmStorage();
     private final UserStorage userStorage = new InMemoryUserStorage();
-    private final UserService userService = new UserService(userStorage);
-    private final FilmService filmService = new FilmService(filmStorage, userService);
+    private final FilmService filmService = new FilmServiceManager(filmStorage, userStorage);
+    private final UserService userService = new UserServiceManager(userStorage);
 
     @Test
     void getAllFilmsTestOk() {
@@ -104,8 +106,8 @@ public class FilmServiceTest {
 
         filmService.addLike(film.getId(), user.getId());
 
-        assertNotNull(film.getLikes(), "Информация о лайках отсутствует");
-        assertTrue(film.getLikes().contains(user.getId()), "Информация о лайках отсутствует");
+        assertNotNull(filmStorage.getLikesByFilms().get(film.getId()), "Информация о лайках отсутствует");
+        assertTrue(filmStorage.getLikesByFilms().get(film.getId()).contains(user.getId()), "Информация о лайках отсутствует");
     }
 
     @Test
@@ -119,7 +121,7 @@ public class FilmServiceTest {
         filmService.addLike(film.getId(), user.getId());
         filmService.deleteLike(film.getId(), user.getId());
 
-        assertTrue(film.getLikes().isEmpty(), "Лайки к фильму не удалены");
+        assertTrue(filmStorage.getLikesByFilms().get(film.getId()).isEmpty(), "Лайки к фильму не удалены");
     }
 
     @Test

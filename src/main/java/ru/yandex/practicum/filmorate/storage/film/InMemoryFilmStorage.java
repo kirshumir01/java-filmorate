@@ -1,75 +1,87 @@
 package ru.yandex.practicum.filmorate.storage.film;
 
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-import ru.yandex.practicum.filmorate.exception.NotFoundException;
-import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.film.Film;
-import ru.yandex.practicum.filmorate.model.StorageData;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Component
-@Slf4j
-public class InMemoryFilmStorage extends StorageData implements FilmStorage {
+public class InMemoryFilmStorage implements FilmStorage {
     private final Map<Long, Film> films = new HashMap<>();
     private long currentId = 0L;
+    private final Map<Long, Set<Long>> likesByFilms;
+
+    public InMemoryFilmStorage() {
+        likesByFilms = new HashMap<>();
+    }
 
     @Override
     public List<Film> getAll() {
-        log.info("Получена информация о всех сохраненных фильмах");
         return new ArrayList<>(films.values());
     }
 
     @Override
     public Film get(Long id) {
-        if (films.containsKey(id)) {
-            log.info("Получена информация о фильме с идентификатором {}", id);
-            return films.get(id);
-        } else if (id == null || id <= 0) {
-            log.error("Идентификатор фильма отсутствует или задан в некорректном формате");
-            throw new NotFoundException("Идентификатор фильма отсутствует или задан в некорректном формате");
-        } else {
-            log.error("Информация о фильме с id = " + id + " не найдена");
-            throw new NotFoundException("Фильм с id = " + id + " не найден");
-        }
+        return films.get(id);
     }
 
     @Override
     public Film create(Film film) {
         film.setId(++currentId);
         films.put(film.getId(), film);
-        log.info("Информация о новом фильме {} сохранена", film.getName());
         return film;
     }
 
     @Override
     public Film update(Film newFilm) {
-        checkFilmId(newFilm);
         films.put(newFilm.getId(), newFilm);
-        log.info("Информация о фильме c идентификатором {} обновлена: {}", newFilm.getId(), newFilm);
         return newFilm;
     }
 
     @Override
     public void delete(Long id) {
-        checkFilmId(films.get(id));
-        log.info("Информация о фильме с идентификатором {} удалена", id);
         films.remove(id);
     }
 
-    private void checkFilmId(Film film) {
-        if (film.getId() == null || film.getId() <= 0) {
-            log.debug("Идентификатор отсутствует или имеет некорректный формат");
-            throw new ValidationException("Идентификатор должен быть задан");
+    @Override
+    public void addLike(Long filmId, Long userId) {
+        if (likesByFilms.containsKey(filmId)) {
+            Set<Long> filmLikes = likesByFilms.get(filmId);
+            filmLikes.add(userId);
+            likesByFilms.put(filmId, filmLikes);
+        } else {
+            Set<Long> filmLikes = new HashSet<>();
+            filmLikes.add(userId);
+            likesByFilms.put(filmId, filmLikes);
         }
+    }
 
-        if (!films.containsKey(film.getId())) {
-            log.debug("Ошибка поиска фильма по идентификатору: " + film.getId());
-            throw new NotFoundException("Фильм с id = " + film.getId() + " не найден");
-        }
+    @Override
+    public void deleteLike(Long filmId, Long userId) {
+        Set<Long> filmLikes = likesByFilms.get(filmId);
+        filmLikes.remove(userId);
+        likesByFilms.put(filmId, filmLikes);
+    }
+
+    @Override
+    public List<Film> getPopular(int count) {
+        List<Film> popularFilms = new ArrayList<>();
+
+        Map<Long, Set<Long>> sortedLikesByFilms = likesByFilms.entrySet()
+                .stream()
+                .sorted((entry1, entry2) -> Integer.compare(entry2.getValue().size(), entry1.getValue().size()))
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (e1, e2) -> e1, LinkedHashMap::new));
+
+        sortedLikesByFilms.entrySet()
+                .stream()
+                .limit(count)
+                .forEach(longSetEntry -> popularFilms.add(films.get(longSetEntry.getKey())));
+
+        return popularFilms;
+    }
+    @Override
+    public Map<Long, Set<Long>> getLikesByFilms() {
+        return new HashMap<>(likesByFilms);
     }
 }

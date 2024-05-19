@@ -1,85 +1,25 @@
 package ru.yandex.practicum.filmorate.service.user;
 
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.model.user.User;
-import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
-@Slf4j
-@Service
-public class UserService {
-    private final UserStorage userStorage;
+public interface UserService {
+    List<User> getAll();
 
-    @Autowired
-    public UserService(UserStorage userStorage) {
-        this.userStorage = userStorage;
-    }
+    User get(Long id);
 
-    public List<User> getAll() {
-        return userStorage.getAll();
-    }
+    User create(User user);
 
-    public User get(Long id) {
-        return userStorage.get(id);
-    }
+    User update(User newUser);
 
-    public User create(User user) {
-        return userStorage.create(user);
-    }
+    void delete(Long id);
 
-    public User update(User newUser) {
-        return userStorage.update(newUser);
-    }
+    void addFriend(Long userId, Long friendId);
 
-    public void delete(Long id) {
-        userStorage.delete(id);
-    }
+    void deleteFriend(Long userId, Long friendId);
 
-    public User addFriend(Long userId, Long friendId) {
-        User user = get(userId);
-        User friend = get(friendId);
-        user.getFriends().add(friendId);
-        friend.getFriends().add(userId);
+    List<User> getFriends(Long id);
 
-        update(user);
-        update(friend);
-        log.info("Пользователи {} и {} стали друзьями", user.getLogin(), friend.getLogin());
-        return user;
-    }
-
-    public User deleteFriend(Long userId, Long friendId) {
-        User user = get(userId);
-        User friend = get(friendId);
-        user.getFriends().remove(friendId);
-        friend.getFriends().remove(userId);
-
-        update(user);
-        update(friend);
-        log.info("Пользователи {} и {} удалили друг друга из друзей", user.getLogin(), friend.getLogin());
-        return user;
-    }
-
-    public List<User> getFriends(Long id) {
-        User user = get(id);
-        List<User> friends = user.getFriends().stream()
-                .map(this::get)
-                .collect(Collectors.toList());
-        log.info("Получен список друзей пользователя {}", user.getLogin());
-        return friends;
-    }
-
-    public List<User> getCommonFriends(Long userId, Long friendId) {
-        User user = get(userId);
-        User friend = get(friendId);
-        List<User> commonFriends = user.getFriends().stream()
-                .filter(friend.getFriends()::contains)
-                .map(this::get)
-                .collect(Collectors.toList());
-        log.info("Получен список общих друзей пользователей {} и {}", user.getLogin(), friend.getLogin());
-        return commonFriends;
-    }
+    List<User> getCommonFriends(Long userId, Long friendId);
 }

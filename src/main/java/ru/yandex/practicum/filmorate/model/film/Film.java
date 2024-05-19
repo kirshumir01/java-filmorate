@@ -7,18 +7,13 @@ import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
 import lombok.Builder;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 import org.springframework.format.annotation.DateTimeFormat;
-import ru.yandex.practicum.filmorate.model.StorageData;
 import ru.yandex.practicum.filmorate.validator.releasedatevalidator.ReleaseDate;
 
 import java.time.LocalDate;
-import java.util.HashSet;
-import java.util.Set;
 
 @Data
-@EqualsAndHashCode(callSuper = true)
-public class Film extends StorageData {
+public class Film {
     private Long id;
 
     @NotNull
@@ -35,8 +30,6 @@ public class Film extends StorageData {
 
     @Positive
     private int duration;
-
-    private Set<Long> likes = new HashSet<>();
 
     @Builder
     public Film(long id, String name, String description, LocalDate releaseDate, int duration) {
