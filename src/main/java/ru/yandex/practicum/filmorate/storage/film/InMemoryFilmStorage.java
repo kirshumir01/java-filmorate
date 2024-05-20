@@ -10,7 +10,7 @@ import java.util.stream.Collectors;
 public class InMemoryFilmStorage implements FilmStorage {
     private final Map<Long, Film> films = new HashMap<>();
     private long currentId = 0L;
-    private final Map<Long, Set<Long>> likesByFilms;
+    private final Map<Film, Set<Long>> likesByFilms;
 
     public InMemoryFilmStorage() {
         likesByFilms = new HashMap<>();
@@ -22,7 +22,7 @@ public class InMemoryFilmStorage implements FilmStorage {
     }
 
     @Override
-    public Film get(Long id) {
+    public Film get(long id) {
         return films.get(id);
     }
 
@@ -40,35 +40,39 @@ public class InMemoryFilmStorage implements FilmStorage {
     }
 
     @Override
-    public void delete(Long id) {
+    public void delete(long id) {
         films.remove(id);
     }
 
     @Override
-    public void addLike(Long filmId, Long userId) {
-        if (likesByFilms.containsKey(filmId)) {
-            Set<Long> filmLikes = likesByFilms.get(filmId);
+    public void addLike(long filmId, long userId) {
+        Film film = films.get(filmId);
+
+        if (likesByFilms.containsKey(film)) {
+            Set<Long> filmLikes = likesByFilms.get(film);
             filmLikes.add(userId);
-            likesByFilms.put(filmId, filmLikes);
+            likesByFilms.put(film, filmLikes);
         } else {
             Set<Long> filmLikes = new HashSet<>();
             filmLikes.add(userId);
-            likesByFilms.put(filmId, filmLikes);
+            likesByFilms.put(film, filmLikes);
         }
     }
 
     @Override
-    public void deleteLike(Long filmId, Long userId) {
-        Set<Long> filmLikes = likesByFilms.get(filmId);
+    public void deleteLike(long filmId, long userId) {
+        Film film = films.get(filmId);
+
+        Set<Long> filmLikes = likesByFilms.get(film);
         filmLikes.remove(userId);
-        likesByFilms.put(filmId, filmLikes);
+        likesByFilms.put(film, filmLikes);
     }
 
     @Override
     public List<Film> getPopular(int count) {
         List<Film> popularFilms = new ArrayList<>();
 
-        Map<Long, Set<Long>> sortedLikesByFilms = likesByFilms.entrySet()
+        Map<Film, Set<Long>> sortedLikesByFilms = likesByFilms.entrySet()
                 .stream()
                 .sorted((entry1, entry2) -> Integer.compare(entry2.getValue().size(), entry1.getValue().size()))
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (e1, e2) -> e1, LinkedHashMap::new));
@@ -76,13 +80,8 @@ public class InMemoryFilmStorage implements FilmStorage {
         sortedLikesByFilms.entrySet()
                 .stream()
                 .limit(count)
-                .forEach(longSetEntry -> popularFilms.add(films.get(longSetEntry.getKey())));
+                .forEach(longSetEntry -> popularFilms.add(longSetEntry.getKey()));
 
         return popularFilms;
-    }
-
-    @Override
-    public Map<Long, Set<Long>> getLikesByFilms() {
-        return new HashMap<>(likesByFilms);
     }
 }

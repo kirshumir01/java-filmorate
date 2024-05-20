@@ -10,7 +10,7 @@ import java.util.stream.Collectors;
 public class InMemoryUserStorage implements UserStorage {
     private final Map<Long, User> users = new HashMap<>();
     private long currentId = 0L;
-    private final Map<Long, Set<Long>> friendsByUsers;
+    private final Map<User, Set<Long>> friendsByUsers;
 
     public InMemoryUserStorage() {
         friendsByUsers = new HashMap<>();
@@ -22,13 +22,12 @@ public class InMemoryUserStorage implements UserStorage {
     }
 
     @Override
-    public User get(Long id) {
+    public User get(long id) {
         return users.get(id);
     }
 
     @Override
     public User create(User user) {
-        checkUserName(user);
         user.setId(++currentId);
         users.put(user.getId(), user);
         return user;
@@ -41,58 +40,66 @@ public class InMemoryUserStorage implements UserStorage {
     }
 
     @Override
-    public void delete(Long id) {
+    public void delete(long id) {
         users.remove(id);
     }
 
     @Override
-    public void addFriend(Long userId, Long friendId) {
+    public void addFriend(long userId, long friendId) {
         Set<Long> userFriends;
         Set<Long> friendFriends;
 
-        if (friendsByUsers.containsKey(userId) &&
-            friendsByUsers.containsKey(friendId) &&
-            !friendsByUsers.get(userId).contains(friendId)) {
-            userFriends = friendsByUsers.get(userId);
-            friendFriends = friendsByUsers.get(friendId);
-        } else if (friendsByUsers.containsKey(userId) &&
-                   !friendsByUsers.containsKey(friendId)) {
-            userFriends = friendsByUsers.get(userId);
+        User user = users.get(userId);
+        User friend = users.get(friendId);
+
+        if (friendsByUsers.containsKey(user) &&
+            friendsByUsers.containsKey(friend) &&
+            !friendsByUsers.get(user).contains(friendId)) {
+            userFriends = friendsByUsers.get(user);
+            friendFriends = friendsByUsers.get(friend);
+        } else if (friendsByUsers.containsKey(user) &&
+                   !friendsByUsers.containsKey(friend)) {
+            userFriends = friendsByUsers.get(user);
             friendFriends = new HashSet<>();
-        } else if (!friendsByUsers.containsKey(userId) &&
-                    friendsByUsers.containsKey(friendId)) {
+        } else if (!friendsByUsers.containsKey(user) &&
+                    friendsByUsers.containsKey(friend)) {
             userFriends = new HashSet<>();
-            friendFriends = friendsByUsers.get(friendId);
+            friendFriends = friendsByUsers.get(friend);
         } else {
             userFriends = new HashSet<>();
             friendFriends = new HashSet<>();
         }
         userFriends.add(friendId);
-        friendsByUsers.put(userId, userFriends);
+        friendsByUsers.put(user, userFriends);
         friendFriends.add(userId);
-        friendsByUsers.put(friendId, friendFriends);
+        friendsByUsers.put(friend, friendFriends);
     }
 
     @Override
-    public void deleteFriend(Long userId, Long friendId) {
+    public void deleteFriend(long userId, long friendId) {
+        User user = users.get(userId);
+        User friend = users.get(friendId);
+
         friendsByUsers.entrySet()
                 .stream()
-                .filter(longSetEntry -> longSetEntry.getKey().equals(userId))
+                .filter(longSetEntry -> longSetEntry.getKey().equals(user))
                 .forEach(longSetEntry -> longSetEntry.getValue().remove(friendId));
 
         friendsByUsers.entrySet()
                 .stream()
-                .filter(longSetEntry -> longSetEntry.getKey().equals(friendId))
+                .filter(longSetEntry -> longSetEntry.getKey().equals(friend))
                 .forEach(longSetEntry -> longSetEntry.getValue().remove(userId));
     }
 
     @Override
-    public List<User> getFriends(Long id) {
+    public List<User> getFriends(long id) {
         List<User> friends = new ArrayList<>();
+
+        User user = users.get(id);
 
         friendsByUsers.entrySet()
                 .stream()
-                .filter(longSetEntry -> longSetEntry.getKey().equals(id))
+                .filter(longSetEntry -> longSetEntry.getKey().equals(user))
                 .forEach(longSetEntry -> longSetEntry.getValue()
                         .forEach(friendId -> friends.add(get(friendId))));
 
@@ -100,9 +107,12 @@ public class InMemoryUserStorage implements UserStorage {
     }
 
     @Override
-    public List<User> getCommonFriends(Long userId, Long friendId) {
-        Set<Long> userFriends = friendsByUsers.get(userId);
-        Set<Long> friendFriends = friendsByUsers.get(friendId);
+    public List<User> getCommonFriends(long userId, long friendId) {
+        User user = users.get(userId);
+        User friend = users.get(friendId);
+
+        Set<Long> userFriends = friendsByUsers.get(user);
+        Set<Long> friendFriends = friendsByUsers.get(friend);
 
         List<User> commonFriends = userFriends
                 .stream()
@@ -111,16 +121,5 @@ public class InMemoryUserStorage implements UserStorage {
                 .collect(Collectors.toList());
 
         return commonFriends;
-    }
-
-    @Override
-    public Map<Long, Set<Long>> getFriendsByUsers() {
-        return new HashMap<>(friendsByUsers);
-    }
-
-    private void checkUserName(User user) {
-        if (user.getName() == null || user.getName().isBlank()) {
-            user.setName(user.getLogin());
-        }
     }
 }

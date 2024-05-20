@@ -1,24 +1,26 @@
 package ru.yandex.practicum.filmorate.controller.user;
 
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.Positive;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import ru.yandex.practicum.filmorate.model.validationgroups.Update;
 import ru.yandex.practicum.filmorate.model.user.User;
-import ru.yandex.practicum.filmorate.service.user.UserServiceManager;
+import ru.yandex.practicum.filmorate.service.user.UserService;
 
 import java.util.List;
 
 @Slf4j
+@Validated
 @RestController
 @RequestMapping("/users")
 public class UserController {
-    UserServiceManager userService;
+    UserService userService;
 
     @Autowired
-    public UserController(UserServiceManager userService) {
+    public UserController(UserService userService) {
         this.userService = userService;
     }
 
@@ -32,7 +34,7 @@ public class UserController {
 
 
     @GetMapping("/{id}")
-    public User get(@PathVariable @Positive long id) {
+    public User get(@PathVariable long id) {
         log.info("Запрос на получение информации о пользователе с идентификатором {}", id);
         User user = userService.get(id);
         log.info("Получена информация о пользователе {}", userService.get(id).getLogin());
@@ -49,7 +51,7 @@ public class UserController {
     }
 
     @PutMapping
-    public User update(@Valid @RequestBody User newUser) {
+    public User update(@Valid @Validated(Update.class) @RequestBody User newUser) {
         log.info("Запрос на обновление информации пользователя {}", newUser.getLogin());
         User updatedUser = userService.update(newUser);
         log.info("Информация пользователя {} обновлена", newUser.getLogin());
@@ -58,14 +60,14 @@ public class UserController {
 
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void delete(@PathVariable Long id) {
+    public void delete(@PathVariable long id) {
         log.info("Запрос на удаление информации о пользователе c идентификатором {}", id);
         userService.delete(id);
         log.info("Информация о пользователе c идентификатором {} удалена", id);
     }
 
     @PutMapping("/{id}/friends/{friendId}")
-    public void addFriend(@PathVariable @Positive long id, @PathVariable @Positive long friendId) {
+    public void addFriend(@PathVariable long id, @PathVariable long friendId) {
         log.info("Запрос на добавление в друзья от пользователя c идентификатором {} к пользователю {}", id, friendId);
         userService.addFriend(id, friendId);
         log.info("Пользователи {} и {} стали друзьями",
@@ -73,7 +75,7 @@ public class UserController {
     }
 
     @DeleteMapping("/{id}/friends/{friendId}")
-    public void deleteFriend(@PathVariable @Positive long id, @PathVariable @Positive long friendId) {
+    public void deleteFriend(@PathVariable long id, @PathVariable long friendId) {
         log.info("Запрос на добавление в друзья от пользователя c идентификатором {} к пользователю {}", id, friendId);
         userService.deleteFriend(id, friendId);
         log.info("Пользователь {} удалил пользователя {} из списка друзей",
@@ -81,7 +83,7 @@ public class UserController {
     }
 
     @GetMapping("/{id}/friends")
-    public List<User> getFriends(@PathVariable @Positive long id) {
+    public List<User> getFriends(@PathVariable long id) {
         log.info("Запрос на получение списка друзей пользователя с идентификатором {}", id);
         List<User> friends = userService.getFriends(id);
         log.info("Получен список друзей пользователя {}", userService.get(id).getLogin());
@@ -89,7 +91,7 @@ public class UserController {
     }
 
     @GetMapping("/{id}/friends/common/{otherId}")
-    public List<User> getCommonFriends(@PathVariable @Positive long id, @PathVariable @Positive long otherId) {
+    public List<User> getCommonFriends(@PathVariable long id, @PathVariable long otherId) {
         log.info("Запрос на получение списка общих друзей пользователей с идентификаторами {} и {}", id, otherId);
         List<User> commonFriends = userService.getCommonFriends(id, otherId);
         log.info("Получен список общих друзей пользователей {} и {}",

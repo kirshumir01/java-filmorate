@@ -7,17 +7,17 @@ import java.util.List;
 public interface FilmService {
     List<Film> getAll();
 
-    Film get(Long id);
+    Film get(long id);
 
     Film create(Film film);
 
     Film update(Film newFilm);
 
-    void delete(Long id);
+    void delete(long id);
 
-    void addLike(Long filmId, Long userId);
+    void addLike(long filmId, long userId);
 
-    void deleteLike(Long filmId, Long userId);
+    void deleteLike(long filmId, long userId);
 
     List<Film> getPopular(int count);
 }

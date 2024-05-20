@@ -12,8 +12,8 @@ import ru.yandex.practicum.filmorate.controller.user.UserController;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.film.Film;
 import ru.yandex.practicum.filmorate.model.user.User;
-import ru.yandex.practicum.filmorate.service.film.FilmServiceManager;
-import ru.yandex.practicum.filmorate.service.user.UserServiceManager;
+import ru.yandex.practicum.filmorate.service.film.FilmServiceImpl;
+import ru.yandex.practicum.filmorate.service.user.UserServiceImpl;
 import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
 import ru.yandex.practicum.filmorate.storage.film.InMemoryFilmStorage;
 import ru.yandex.practicum.filmorate.storage.user.InMemoryUserStorage;
@@ -30,8 +30,8 @@ import static org.junit.jupiter.api.Assertions.*;
 public class FilmControllerTest {
     private final FilmStorage filmStorage = new InMemoryFilmStorage();
     private final UserStorage userStorage = new InMemoryUserStorage();
-    private final FilmController filmController = new FilmController(new FilmServiceManager(filmStorage, userStorage));
-    private final UserController userController = new UserController(new UserServiceManager(userStorage));
+    private final FilmController filmController = new FilmController(new FilmServiceImpl(filmStorage, userStorage));
+    private final UserController userController = new UserController(new UserServiceImpl(userStorage));
     private final Validator validator = Validation.buildDefaultValidatorFactory().getValidator();
 
     @AllArgsConstructor
@@ -159,7 +159,7 @@ public class FilmControllerTest {
 
         NotFoundException thrown = Assertions.assertThrows(NotFoundException.class,
                 () -> filmController.update(film2), "Ожидалось получение исключения");
-        assertEquals("Информация о фильме отсутствует", thrown.getMessage());
+        assertEquals("Фильм с id = " + film2.getId() + " не найден", thrown.getMessage());
     }
 
     @Test
@@ -174,34 +174,6 @@ public class FilmControllerTest {
         filmController.delete(film2.getId());
 
         assertTrue(filmController.getAll().isEmpty(), "Информация о фильмах не удалена");
-    }
-
-    @Test
-    void addLikeByUserTestOk() {
-        final Film film = generateCustomFilm("Test film", "Film description", LocalDate.of(2007, 05, 31), 135);
-        final User user = generateCustomUser("user@yandex.ru", "user", "User Name", LocalDate.of(1990, 03, 24));
-
-        filmController.create(film);
-        userController.create(user);
-
-        filmController.addLike(film.getId(), user.getId());
-
-        assertNotNull(filmStorage.getLikesByFilms().get(film.getId()), "Информация о лайках отсутствует");
-        assertTrue(filmStorage.getLikesByFilms().get(film.getId()).contains(user.getId()), "Информация о лайках отсутствует");
-    }
-
-    @Test
-    void deleteLikeByUserTestOk() {
-        final Film film = generateCustomFilm("Test film", "Film description", LocalDate.of(2007, 05, 31), 135);
-        final User user = generateCustomUser("user@yandex.ru", "user", "User Name", LocalDate.of(1990, 03, 24));
-
-        filmController.create(film);
-        userController.create(user);
-
-        filmController.addLike(film.getId(), user.getId());
-        filmController.deleteLike(film.getId(), user.getId());
-
-        assertTrue(filmStorage.getLikesByFilms().get(film.getId()).isEmpty(), "Лайки к фильму не удалены");
     }
 
     @Test

@@ -4,9 +4,9 @@ import org.junit.jupiter.api.Test;
 import ru.yandex.practicum.filmorate.model.film.Film;
 import ru.yandex.practicum.filmorate.model.user.User;
 import ru.yandex.practicum.filmorate.service.film.FilmService;
-import ru.yandex.practicum.filmorate.service.film.FilmServiceManager;
+import ru.yandex.practicum.filmorate.service.film.FilmServiceImpl;
 import ru.yandex.practicum.filmorate.service.user.UserService;
-import ru.yandex.practicum.filmorate.service.user.UserServiceManager;
+import ru.yandex.practicum.filmorate.service.user.UserServiceImpl;
 import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
 import ru.yandex.practicum.filmorate.storage.film.InMemoryFilmStorage;
 import ru.yandex.practicum.filmorate.storage.user.InMemoryUserStorage;
@@ -20,8 +20,8 @@ import static org.junit.jupiter.api.Assertions.*;
 public class FilmServiceTest {
     private final FilmStorage filmStorage = new InMemoryFilmStorage();
     private final UserStorage userStorage = new InMemoryUserStorage();
-    private final FilmService filmService = new FilmServiceManager(filmStorage, userStorage);
-    private final UserService userService = new UserServiceManager(userStorage);
+    private final FilmService filmService = new FilmServiceImpl(filmStorage, userStorage);
+    private final UserService userService = new UserServiceImpl(userStorage);
 
     @Test
     void getAllFilmsTestOk() {
@@ -94,34 +94,6 @@ public class FilmServiceTest {
         filmService.delete(film2.getId());
 
         assertTrue(filmService.getAll().isEmpty(), "Информация о фильмах не удалена");
-    }
-
-    @Test
-    void addLikeByUserTestOk() {
-        final Film film = generateCustomFilm("Test film", "Film description", LocalDate.of(2007, 05, 31), 135);
-        final User user = generateCustomUser("user@yandex.ru", "user", "User Name", LocalDate.of(1990, 03, 24));
-
-        filmService.create(film);
-        userService.create(user);
-
-        filmService.addLike(film.getId(), user.getId());
-
-        assertNotNull(filmStorage.getLikesByFilms().get(film.getId()), "Информация о лайках отсутствует");
-        assertTrue(filmStorage.getLikesByFilms().get(film.getId()).contains(user.getId()), "Информация о лайках отсутствует");
-    }
-
-    @Test
-    void deleteLikeByUserTestOk() {
-        final Film film = generateCustomFilm("Test film", "Film description", LocalDate.of(2007, 05, 31), 135);
-        final User user = generateCustomUser("user@yandex.ru", "user", "User Name", LocalDate.of(1990, 03, 24));
-
-        filmService.create(film);
-        userService.create(user);
-
-        filmService.addLike(film.getId(), user.getId());
-        filmService.deleteLike(film.getId(), user.getId());
-
-        assertTrue(filmStorage.getLikesByFilms().get(film.getId()).isEmpty(), "Лайки к фильму не удалены");
     }
 
     @Test

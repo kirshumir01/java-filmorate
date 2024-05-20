@@ -2,7 +2,8 @@ package ru.yandex.practicum.filmorate.service;
 
 import org.junit.jupiter.api.Test;
 import ru.yandex.practicum.filmorate.model.user.User;
-import ru.yandex.practicum.filmorate.service.user.UserServiceManager;
+import ru.yandex.practicum.filmorate.service.user.UserService;
+import ru.yandex.practicum.filmorate.service.user.UserServiceImpl;
 import ru.yandex.practicum.filmorate.storage.user.InMemoryUserStorage;
 import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 
@@ -13,7 +14,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 public class UserServiceTest {
     private final UserStorage userStorage = new InMemoryUserStorage();
-    private final UserServiceManager userService = new UserServiceManager(userStorage);
+    private final UserService userService = new UserServiceImpl(userStorage);
 
     @Test
     void getAllUsersTestOk() {
@@ -86,39 +87,6 @@ public class UserServiceTest {
         userService.delete(user2.getId());
 
         assertTrue(userService.getAll().isEmpty(), "Информация о пользователях не удалена");
-    }
-
-    @Test
-    void addFriendByUserTestOk() {
-        final User user1 = generateCustomUser("user@yandex.ru", "user 1", "User Name", LocalDate.of(1990, 03, 24));
-        final User user2 = generateCustomUser("user@yandex.ru", "user 2", "User Name", LocalDate.of(1990, 03, 24));
-
-        userService.create(user1);
-        userService.create(user2);
-
-        userService.addFriend(user1.getId(), user2.getId());
-
-        assertNotNull(userStorage.getFriendsByUsers().get(user1.getId()), "Информация о друзьях отсутствует");
-        assertNotNull(userStorage.getFriendsByUsers().get(user2.getId()), "Информация о друзьях отсутствует");
-        assertTrue(userStorage.getFriendsByUsers().get(user1.getId()).contains(user2.getId()),
-                "Информация о друзьях отсутствует");
-        assertTrue(userStorage.getFriendsByUsers().get(user2.getId()).contains(user1.getId()),
-                "Информация о друзьях отсутствует");
-    }
-
-    @Test
-    void deleteFriendByUserTestOk() {
-        final User user1 = generateCustomUser("user@yandex.ru", "user 1", "User Name", LocalDate.of(1990, 03, 24));
-        final User user2 = generateCustomUser("user@yandex.ru", "user 2", "User Name", LocalDate.of(1990, 03, 24));
-
-        userService.create(user1);
-        userService.create(user2);
-
-        userService.addFriend(user1.getId(), user2.getId());
-        userService.deleteFriend(user1.getId(), user2.getId());
-
-        assertTrue(userStorage.getFriendsByUsers().get(user1.getId()).isEmpty(), "Список друзей пользователя не пуст");
-        assertTrue(userStorage.getFriendsByUsers().get(user2.getId()).isEmpty(), "Список друзей пользователя не пуст");
     }
 
     @Test

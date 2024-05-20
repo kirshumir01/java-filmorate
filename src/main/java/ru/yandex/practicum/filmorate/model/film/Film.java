@@ -8,15 +8,16 @@ import jakarta.validation.constraints.Size;
 import lombok.Builder;
 import lombok.Data;
 import org.springframework.format.annotation.DateTimeFormat;
+import ru.yandex.practicum.filmorate.model.validationgroups.Update;
 import ru.yandex.practicum.filmorate.validator.releasedatevalidator.ReleaseDate;
 
 import java.time.LocalDate;
 
 @Data
 public class Film {
+    @NotNull(groups = {Update.class})
     private Long id;
 
-    @NotNull
     @NotBlank
     private String name;
 

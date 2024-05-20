@@ -6,15 +6,16 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.PastOrPresent;
 import lombok.Builder;
 import lombok.Data;
+import ru.yandex.practicum.filmorate.model.validationgroups.Update;
 import ru.yandex.practicum.filmorate.validator.loginvalidator.IsValidLogin;
 
 import java.time.LocalDate;
 
 @Data
 public class User {
+    @NotNull(groups = {Update.class})
     private Long id;
 
-    @NotNull
     @NotBlank
     @Email
     private String email;
