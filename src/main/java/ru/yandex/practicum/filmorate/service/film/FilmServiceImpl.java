@@ -28,6 +28,7 @@ public class FilmServiceImpl implements FilmService {
 
     @Override
     public Film get(long id) {
+        checkFilmId(id);
         return filmStorage.get(id);
     }
 

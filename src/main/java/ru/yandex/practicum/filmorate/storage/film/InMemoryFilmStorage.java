@@ -48,15 +48,9 @@ public class InMemoryFilmStorage implements FilmStorage {
     public void addLike(long filmId, long userId) {
         Film film = films.get(filmId);
 
-        if (likesByFilms.containsKey(film)) {
-            Set<Long> filmLikes = likesByFilms.get(film);
-            filmLikes.add(userId);
-            likesByFilms.put(film, filmLikes);
-        } else {
-            Set<Long> filmLikes = new HashSet<>();
-            filmLikes.add(userId);
-            likesByFilms.put(film, filmLikes);
-        }
+        Set<Long> filmLikes = likesByFilms.getOrDefault(film, new HashSet<>());
+        filmLikes.add(userId);
+        likesByFilms.put(film, filmLikes);
     }
 
     @Override

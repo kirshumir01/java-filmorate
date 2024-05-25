@@ -24,6 +24,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public User get(long id) {
+        checkUserId(id);
         return userStorage.get(id);
     }
 
