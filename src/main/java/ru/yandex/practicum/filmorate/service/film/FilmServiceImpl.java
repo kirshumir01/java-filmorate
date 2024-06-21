@@ -52,7 +52,6 @@ public class FilmServiceImpl implements FilmService {
     public void addLike(long filmId, long userId) {
         checkFilmId(filmId);
         checkUserId(userId);
-        // filmLikesStorage.checkLike(filmId, userId);
         filmLikesStorage.addLike(filmId, userId);
     }
 

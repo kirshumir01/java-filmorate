@@ -57,9 +57,9 @@ public class FilmDbStorage implements FilmStorage {
             """;
 
         SqlParameterSource parameters = new MapSqlParameterSource("id", id);
-        Film film = jdbcOperations.query(sqlQuery, parameters, new FilmRowMapper()).stream().findFirst().get();
-        setGenresToFilm(film);
-        return Optional.of(film);
+        Optional<Film> film = jdbcOperations.query(sqlQuery, parameters, new FilmRowMapper()).stream().findFirst();
+        setGenresToFilm(film.get());
+        return film;
     }
 
     @Override
