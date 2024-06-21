@@ -21,7 +21,7 @@ public class FriendshipDbStorageTest {
     private final FriendshipDbStorage friendshipDbStorage;
 
     @Test
-    @Sql(scripts = {"/data.sql"})
+    @Sql(scripts = {"/data-test.sql"})
     void getFriendsOfUserTestOk() {
         User user1 = userDbStorage.get(1L).get();
         User user2 = userDbStorage.get(2L).get();
@@ -36,7 +36,7 @@ public class FriendshipDbStorageTest {
     }
 
     @Test
-    @Sql(scripts = {"/data.sql"})
+    @Sql(scripts = {"/data-test.sql"})
     void getCommonFriendsOfUserTestOk() {
         User user1 = userDbStorage.get(1L).get();
         User user2 = userDbStorage.get(2L).get();

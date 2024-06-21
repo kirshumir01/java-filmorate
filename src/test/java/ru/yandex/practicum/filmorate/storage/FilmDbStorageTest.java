@@ -49,7 +49,7 @@ public class FilmDbStorageTest {
     }
 
     @Test
-    @Sql(scripts = {"/data.sql"})
+    @Sql(scripts = {"/data-test.sql"})
     void updateFilmTestOk() {
         final Film film3 = generateCustomFilm("Test film 3", "Film3 description", LocalDate.of(2003, 04, 15), 60,
                 Mpa.builder().id(5).name("NC-17").build(), new LinkedHashSet<>());
@@ -67,7 +67,7 @@ public class FilmDbStorageTest {
     }
 
     @Test
-    @Sql(scripts = {"/data.sql"})
+    @Sql(scripts = {"/data-test.sql"})
     void getFilmByIdTestOk() {
         Film film = filmDbStorage.get(1L).get();
 
@@ -79,7 +79,7 @@ public class FilmDbStorageTest {
     }
 
     @Test
-    @Sql(scripts = {"/data.sql"})
+    @Sql(scripts = {"/data-test.sql"})
     void getAllFilmsTestOk() {
         List<Film> films = filmDbStorage.getAll();
 
@@ -99,7 +99,7 @@ public class FilmDbStorageTest {
     }
 
     @Test
-    @Sql(scripts = {"/data.sql"})
+    @Sql(scripts = {"/data-test.sql"})
     void deleteFilmsTest() {
         filmDbStorage.delete(1L);
 
@@ -107,7 +107,7 @@ public class FilmDbStorageTest {
     }
 
     @Test
-    @Sql(scripts = {"/data.sql"})
+    @Sql(scripts = {"/data-test.sql"})
     void getPopularFilmsTestOk() {
         final Film film1 = filmDbStorage.get(1L).get();
         final Film film2 = filmDbStorage.get(2L).get();

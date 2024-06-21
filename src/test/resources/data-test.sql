@@ -1,3 +1,6 @@
+DELETE FROM users;
+DELETE FROM films;
+
 INSERT INTO users (id, email, login, name, birthday)
 VALUES (1, 'user1@yandex.ru', 'user1', 'User1 Name', '1990-03-24');
 

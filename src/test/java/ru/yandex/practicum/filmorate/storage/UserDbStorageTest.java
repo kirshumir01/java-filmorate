@@ -39,7 +39,7 @@ public class UserDbStorageTest {
     }
 
     @Test
-    @Sql(scripts = {"/data.sql"})
+    @Sql(scripts = {"/data-test.sql"})
     void updateUserTestOk() {
         final User user = generateCustomUser("user3@yandex.ru", "user3", "User3 Name", LocalDate.of(1990, 03, 26));
         user.setId(1L);
@@ -56,7 +56,7 @@ public class UserDbStorageTest {
     }
 
     @Test
-    @Sql(scripts = {"/data.sql"})
+    @Sql(scripts = {"/data-test.sql"})
     void getUserByIdTest() {
         User user = userDbStorage.get(1L).get();
 
@@ -68,7 +68,7 @@ public class UserDbStorageTest {
     }
 
     @Test
-    @Sql(scripts = {"/data.sql"})
+    @Sql(scripts = {"/data-test.sql"})
     void getAllUsersTest() {
         List<User> users = userDbStorage.getAll();
 
@@ -87,7 +87,7 @@ public class UserDbStorageTest {
     }
 
     @Test
-    @Sql(scripts = {"/data.sql"})
+    @Sql(scripts = {"/data-test.sql"})
     void deleteUsersTest() {
         userDbStorage.delete(1L);
 
