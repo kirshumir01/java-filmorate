@@ -17,7 +17,7 @@ import java.time.LocalDate;
 import java.util.LinkedHashSet;
 
 @Data
-@Builder
+@Builder(toBuilder = true)
 public class Film {
     @NotNull(groups = {Update.class})
     private Long id;

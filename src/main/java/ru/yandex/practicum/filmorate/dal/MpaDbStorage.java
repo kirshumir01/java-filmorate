@@ -1,7 +1,9 @@
 package ru.yandex.practicum.filmorate.dal;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcOperations;
+import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.dal.mappers.MpaRowMapper;
 import ru.yandex.practicum.filmorate.model.mpa.Mpa;
@@ -13,20 +15,18 @@ import java.util.Optional;
 @Component
 @RequiredArgsConstructor
 public class MpaDbStorage implements MpaStorage {
-    private final JdbcTemplate jdbcTemplate;
-    private final MpaRowMapper mpaMapper;
-
-    private static final String SELECT_ALL_RATINGS = "SELECT id, name FROM mpa_ratings";
-
-    private static final String SELECT_RATING = "SELECT id, name FROM mpa_ratings WHERE id = ?";
+    private final NamedParameterJdbcOperations jdbcOperations;
 
     @Override
     public List<Mpa> getAll() {
-        return jdbcTemplate.query(SELECT_ALL_RATINGS, mpaMapper);
+        String sqlQuery = "SELECT id, name FROM mpa_ratings";
+        return jdbcOperations.query(sqlQuery, new MpaRowMapper());
     }
 
     @Override
     public Optional<Mpa> get(int id) {
-        return jdbcTemplate.query(SELECT_RATING, mpaMapper, id).stream().findFirst();
+        String sqlQuery = "SELECT id, name FROM mpa_ratings WHERE id = :id";
+        SqlParameterSource parameters = new MapSqlParameterSource("id", id);
+        return jdbcOperations.query(sqlQuery, parameters, new MpaRowMapper()).stream().findFirst();
     }
 }

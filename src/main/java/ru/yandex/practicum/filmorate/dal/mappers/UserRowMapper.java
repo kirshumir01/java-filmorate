@@ -1,14 +1,11 @@
 package ru.yandex.practicum.filmorate.dal.mappers;
 
 import org.springframework.jdbc.core.RowMapper;
-import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.model.user.User;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
 
-@Component
 public class UserRowMapper implements RowMapper<User> {
 
     @Override
@@ -19,7 +16,6 @@ public class UserRowMapper implements RowMapper<User> {
                 .login(rs.getString("login"))
                 .name(rs.getString("name"))
                 .birthday(rs.getDate("birthday").toLocalDate())
-                .friends(new ArrayList<>())
                 .build();
     }
 }

@@ -10,7 +10,6 @@ import ru.yandex.practicum.filmorate.model.validationgroups.Update;
 import ru.yandex.practicum.filmorate.validator.loginvalidator.IsValidLogin;
 
 import java.time.LocalDate;
-import java.util.List;
 
 @Data
 @Builder
@@ -30,6 +29,4 @@ public class User {
 
     @PastOrPresent
     private LocalDate birthday;
-
-    private List<Long> friends;
 }

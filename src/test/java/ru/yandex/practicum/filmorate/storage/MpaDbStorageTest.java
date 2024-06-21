@@ -3,19 +3,15 @@ package ru.yandex.practicum.filmorate.storage;
 import lombok.RequiredArgsConstructor;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.jdbc.JdbcTest;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.test.context.ContextConfiguration;
+import org.springframework.context.annotation.Import;
 import ru.yandex.practicum.filmorate.dal.MpaDbStorage;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 @JdbcTest
-@AutoConfigureTestDatabase
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
-@ContextConfiguration(classes = {MpaDbStorage.class})
-@ComponentScan(basePackages = {"ru.yandex.practicum.filmorate.dal"})
+@Import(MpaDbStorage.class)
 public class MpaDbStorageTest {
     private final MpaDbStorage mpaDbStorage;
 

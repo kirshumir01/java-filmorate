@@ -3,10 +3,8 @@ package ru.yandex.practicum.filmorate.storage;
 import lombok.RequiredArgsConstructor;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.jdbc.JdbcTest;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.test.context.ContextConfiguration;
+import org.springframework.context.annotation.Import;
 import org.springframework.test.context.jdbc.Sql;
 import ru.yandex.practicum.filmorate.dal.UserDbStorage;
 import ru.yandex.practicum.filmorate.model.user.User;
@@ -18,10 +16,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @JdbcTest
-@AutoConfigureTestDatabase
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
-@ContextConfiguration(classes = {UserDbStorage.class})
-@ComponentScan(basePackages = {"ru.yandex.practicum.filmorate.dal"})
+@Import(UserDbStorage.class)
 public class UserDbStorageTest {
     private final UserDbStorage userDbStorage;
 
@@ -29,6 +25,7 @@ public class UserDbStorageTest {
     void createUserTestOk() {
         final User user = generateCustomUser("user1@yandex.ru", "user1", "User1 Name", LocalDate.of(1990, 03, 24));
 
+        userDbStorage.getAll().forEach(u -> userDbStorage.delete(u.getId()));
         userDbStorage.create(user);
 
         final List<User> users = userDbStorage.getAll();
@@ -42,7 +39,7 @@ public class UserDbStorageTest {
     }
 
     @Test
-    @Sql(scripts = {"/clear-all.sql", "/test-get-users.sql"})
+    @Sql(scripts = {"/data.sql"})
     void updateUserTestOk() {
         final User user = generateCustomUser("user3@yandex.ru", "user3", "User3 Name", LocalDate.of(1990, 03, 26));
         user.setId(1L);
@@ -59,7 +56,7 @@ public class UserDbStorageTest {
     }
 
     @Test
-    @Sql(scripts = {"/clear-all.sql", "/test-get-users.sql"})
+    @Sql(scripts = {"/data.sql"})
     void getUserByIdTest() {
         User user = userDbStorage.get(1L).get();
 
@@ -71,7 +68,7 @@ public class UserDbStorageTest {
     }
 
     @Test
-    @Sql(scripts = {"/clear-all.sql", "/test-get-users.sql"})
+    @Sql(scripts = {"/data.sql"})
     void getAllUsersTest() {
         List<User> users = userDbStorage.getAll();
 
@@ -90,7 +87,7 @@ public class UserDbStorageTest {
     }
 
     @Test
-    @Sql(scripts = {"/clear-all.sql", "/test-get-users.sql"})
+    @Sql(scripts = {"/data.sql"})
     void deleteUsersTest() {
         userDbStorage.delete(1L);
 

@@ -1,6 +1,3 @@
-DELETE FROM mpa_ratings;
-DELETE FROM genres;
-
 MERGE INTO genres (id, name)
 KEY(id)
 values (1, 'Комедия'),

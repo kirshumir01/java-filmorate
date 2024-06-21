@@ -3,10 +3,8 @@ package ru.yandex.practicum.filmorate.storage;
 import lombok.RequiredArgsConstructor;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.jdbc.JdbcTest;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.test.context.ContextConfiguration;
+import org.springframework.context.annotation.Import;
 import org.springframework.test.context.jdbc.Sql;
 import ru.yandex.practicum.filmorate.dal.FilmDbStorage;
 import ru.yandex.practicum.filmorate.dal.FilmLikesDbStorage;
@@ -24,10 +22,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @JdbcTest
-@AutoConfigureTestDatabase
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
-@ContextConfiguration(classes = {FilmDbStorage.class, UserDbStorage.class, FilmLikesDbStorage.class})
-@ComponentScan(basePackages = {"ru.yandex.practicum.filmorate.dal"})
+@Import({FilmDbStorage.class, UserDbStorage.class, FilmLikesDbStorage.class})
 public class FilmDbStorageTest {
     private final FilmDbStorage filmDbStorage;
     private final UserDbStorage userDbStorage;
@@ -37,6 +33,8 @@ public class FilmDbStorageTest {
     void createFilmTestOk() {
         final Film film = generateCustomFilm("Test film 1", "Film1 description", LocalDate.of(2007, 05, 31), 135,
                 Mpa.builder().id(1).name("PG-13").build(), new LinkedHashSet<>());
+
+        filmDbStorage.getAll().forEach(f -> filmDbStorage.delete(f.getId()));
 
         filmDbStorage.create(film);
 
@@ -51,7 +49,7 @@ public class FilmDbStorageTest {
     }
 
     @Test
-    @Sql(scripts = {"/clear-all.sql", "/test-get-films.sql"})
+    @Sql(scripts = {"/data.sql"})
     void updateFilmTestOk() {
         final Film film3 = generateCustomFilm("Test film 3", "Film3 description", LocalDate.of(2003, 04, 15), 60,
                 Mpa.builder().id(5).name("NC-17").build(), new LinkedHashSet<>());
@@ -69,7 +67,7 @@ public class FilmDbStorageTest {
     }
 
     @Test
-    @Sql(scripts = {"/clear-all.sql", "/test-get-films.sql"})
+    @Sql(scripts = {"/data.sql"})
     void getFilmByIdTestOk() {
         Film film = filmDbStorage.get(1L).get();
 
@@ -81,7 +79,7 @@ public class FilmDbStorageTest {
     }
 
     @Test
-    @Sql(scripts = {"/clear-all.sql", "/test-get-films.sql"})
+    @Sql(scripts = {"/data.sql"})
     void getAllFilmsTestOk() {
         List<Film> films = filmDbStorage.getAll();
 
@@ -101,7 +99,7 @@ public class FilmDbStorageTest {
     }
 
     @Test
-    @Sql(scripts = {"/clear-all.sql", "/test-get-films.sql"})
+    @Sql(scripts = {"/data.sql"})
     void deleteFilmsTest() {
         filmDbStorage.delete(1L);
 
@@ -109,7 +107,7 @@ public class FilmDbStorageTest {
     }
 
     @Test
-    @Sql(scripts = {"/clear-all.sql", "/test-get-films.sql", "/test-get-users.sql"})
+    @Sql(scripts = {"/data.sql"})
     void getPopularFilmsTestOk() {
         final Film film1 = filmDbStorage.get(1L).get();
         final Film film2 = filmDbStorage.get(2L).get();
@@ -148,19 +146,6 @@ public class FilmDbStorageTest {
                 .duration(duration)
                 .mpa(mpa)
                 .genres(new LinkedHashSet<>())
-                .build();
-    }
-
-    private User generateCustomUser(
-            String email,
-            String login,
-            String name,
-            LocalDate birthday) {
-        return User.builder()
-                .email(email)
-                .login(login)
-                .name(name)
-                .birthday(birthday)
                 .build();
     }
 }

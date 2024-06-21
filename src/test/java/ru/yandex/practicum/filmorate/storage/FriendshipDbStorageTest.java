@@ -3,10 +3,8 @@ package ru.yandex.practicum.filmorate.storage;
 import lombok.RequiredArgsConstructor;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.jdbc.JdbcTest;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.test.context.ContextConfiguration;
+import org.springframework.context.annotation.Import;
 import org.springframework.test.context.jdbc.Sql;
 import ru.yandex.practicum.filmorate.dal.FriendshipDbStorage;
 import ru.yandex.practicum.filmorate.dal.UserDbStorage;
@@ -16,16 +14,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @JdbcTest
-@AutoConfigureTestDatabase
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
-@ContextConfiguration(classes = {UserDbStorage.class, FriendshipDbStorage.class})
-@ComponentScan(basePackages = {"ru.yandex.practicum.filmorate.dal"})
+@Import({UserDbStorage.class, FriendshipDbStorage.class})
 public class FriendshipDbStorageTest {
     private final UserDbStorage userDbStorage;
     private final FriendshipDbStorage friendshipDbStorage;
 
     @Test
-    @Sql(scripts = {"/clear-all.sql", "/test-get-users.sql"})
+    @Sql(scripts = {"/data.sql"})
     void getFriendsOfUserTestOk() {
         User user1 = userDbStorage.get(1L).get();
         User user2 = userDbStorage.get(2L).get();
@@ -40,7 +36,7 @@ public class FriendshipDbStorageTest {
     }
 
     @Test
-    @Sql(scripts = {"/clear-all.sql", "/test-get-users.sql"})
+    @Sql(scripts = {"/data.sql"})
     void getCommonFriendsOfUserTestOk() {
         User user1 = userDbStorage.get(1L).get();
         User user2 = userDbStorage.get(2L).get();
