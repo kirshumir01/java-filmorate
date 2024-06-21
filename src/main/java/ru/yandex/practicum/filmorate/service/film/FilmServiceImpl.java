@@ -3,7 +3,9 @@ package ru.yandex.practicum.filmorate.service.film;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
+import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.film.Film;
+import ru.yandex.practicum.filmorate.model.genre.Genre;
 import ru.yandex.practicum.filmorate.storage.*;
 
 import java.util.List;
@@ -14,6 +16,8 @@ public class FilmServiceImpl implements FilmService {
     private final FilmStorage filmStorage;
     private final FilmLikesStorage filmLikesStorage;
     private final UserStorage userStorage;
+    private final MpaStorage mpaStorage;
+    private final GenreStorage genreStorage;
 
     @Override
     public List<Film> getAll() {
@@ -28,6 +32,8 @@ public class FilmServiceImpl implements FilmService {
 
     @Override
     public Film create(Film film) {
+        checkMpa(film);
+        checkGenres(film);
         return filmStorage.create(film);
     }
 
@@ -71,6 +77,22 @@ public class FilmServiceImpl implements FilmService {
     private void checkUserId(long userId) {
         if (userStorage.get(userId).isEmpty()) {
             throw new NotFoundException("Пользователь с id = " + userId + " не найден");
+        }
+    }
+
+    private void checkMpa(Film film) {
+        if (mpaStorage.get(film.getMpa().getId()).isEmpty()) {
+            throw new ValidationException("Информация о рейтинге с id = " + film.getMpa().getId() + " отсутствует.");
+        }
+    }
+
+    private void checkGenres(Film film) {
+        if (film.getGenres() != null) {
+            for (Genre genre : film.getGenres()) {
+                if (genreStorage.get(genre.getId()).isEmpty()) {
+                    throw new ValidationException("Информация о жанре с id = " + genre.getId() + " отсутствует.");
+                }
+            }
         }
     }
 }
