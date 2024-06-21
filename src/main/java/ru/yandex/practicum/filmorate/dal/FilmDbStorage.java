@@ -57,9 +57,10 @@ public class FilmDbStorage implements FilmStorage {
             """;
 
         SqlParameterSource parameters = new MapSqlParameterSource("id", id);
-        Optional<Film> film = jdbcOperations.query(sqlQuery, parameters, new FilmRowMapper()).stream().findFirst();
-        setGenresToFilm(film.get());
-        return film;
+        List<Film> films = jdbcOperations.query(sqlQuery, parameters, new FilmRowMapper());
+        Film film = films.getFirst();
+        setGenresToFilm(film);
+        return Optional.of(film);
     }
 
     @Override
@@ -83,6 +84,7 @@ public class FilmDbStorage implements FilmStorage {
         film.setId(Objects.requireNonNull(keyHolder.getKey()).longValue());
         setMpaToFilm(film);
         updateGenres(film);
+        setGenresToFilm(film);
         return film;
     }
 
@@ -107,6 +109,7 @@ public class FilmDbStorage implements FilmStorage {
         setMpaToFilm(newFilm);
         deleteGenres(newFilm);
         updateGenres(newFilm);
+        setGenresToFilm(newFilm);
         return newFilm;
     }
 
