@@ -10,6 +10,7 @@ import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.dal.mappers.FilmRowMapper;
 import ru.yandex.practicum.filmorate.dal.mappers.GenreRowMapper;
 import ru.yandex.practicum.filmorate.dal.mappers.MpaRowMapper;
+import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.film.Film;
 import ru.yandex.practicum.filmorate.model.genre.Genre;
 import ru.yandex.practicum.filmorate.model.mpa.Mpa;
@@ -24,7 +25,6 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class FilmDbStorage implements FilmStorage {
     private final NamedParameterJdbcOperations jdbcOperations;
-
 
     @Override
     public List<Film> getAll() {
@@ -58,6 +58,9 @@ public class FilmDbStorage implements FilmStorage {
 
         SqlParameterSource parameters = new MapSqlParameterSource("id", id);
         List<Film> films = jdbcOperations.query(sqlQuery, parameters, new FilmRowMapper());
+        if (films.isEmpty()) {
+            throw new NotFoundException("Фильм с id = " + id + " не найден");
+        }
         Film film = films.getFirst();
         setGenresToFilm(film);
         return Optional.of(film);
