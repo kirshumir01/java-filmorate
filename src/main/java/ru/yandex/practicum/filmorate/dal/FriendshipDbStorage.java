@@ -19,7 +19,7 @@ public class FriendshipDbStorage implements FriendshipStorage {
     @Override
     public void addFriend(long userId, long friendId) {
         String sqlQuery = """
-                INSERT INTO friendship (
+                MERGE INTO friendship (
                 user_id, friend_id, friendship_status
                 )
                 VALUES (:user_id, :friend_id, :friendship_status)
@@ -59,11 +59,12 @@ public class FriendshipDbStorage implements FriendshipStorage {
     @Override
     public List<User> getCommonFriends(long userId, long friendId) {
         String sqlQuery = """
-                SELECT * FROM users WHERE id IN (
-                SELECT friend_id FROM friendship WHERE user_id = :user_id AND friendship_status = true
-                INTERSECT
-                SELECT friend_id FROM friendship WHERE user_id = :friend_id AND friendship_status = true
-                )
+                SELECT u.id, u.email, u.login, u.name, u.birthday
+                FROM friendship AS user_fr
+                INNER JOIN friendship AS friend_fr ON friend_fr.friend_id = user_fr.friend_id
+                INNER JOIN users AS u ON u.id = friend_fr.friend_id
+                WHERE user_fr.user_id = :user_id AND friend_fr.user_id = :friend_id
+                AND user_fr.friend_id <> friend_fr.user_id AND friend_fr.friend_id <> user_fr.user_id
                 """;
 
         SqlParameterSource parameters = new MapSqlParameterSource()

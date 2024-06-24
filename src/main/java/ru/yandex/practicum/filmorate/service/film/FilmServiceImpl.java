@@ -8,7 +8,10 @@ import ru.yandex.practicum.filmorate.model.film.Film;
 import ru.yandex.practicum.filmorate.model.genre.Genre;
 import ru.yandex.practicum.filmorate.storage.*;
 
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -34,6 +37,7 @@ public class FilmServiceImpl implements FilmService {
     public Film create(Film film) {
         checkMpa(film);
         checkGenres(film);
+        setGenres(film);
         return filmStorage.create(film);
     }
 
@@ -87,11 +91,19 @@ public class FilmServiceImpl implements FilmService {
 
     private void checkGenres(Film film) {
         if (film.getGenres() != null) {
-            for (Genre genre : film.getGenres()) {
-                if (genreStorage.get(genre.getId()).isEmpty()) {
-                    throw new ValidationException("Информация о жанре с id = " + genre.getId() + " отсутствует.");
+            Set<Integer> ids = film.getGenres().stream().map(Genre::getId).collect(Collectors.toSet());
+            genreStorage.getBy(ids).ifPresent(genres -> {
+                if (genres.isEmpty()) {
+                    throw new ValidationException("Информация о жанрах отсутствует.");
                 }
-            }
+            });
         }
+    }
+
+    private void setGenres(Film film) {
+        if (film.getGenres() != null) {
+            Set<Integer> ids = film.getGenres().stream().map(Genre::getId).collect(Collectors.toSet());
+            genreStorage.getBy(ids).ifPresent(film::setGenres);
+        } else film.setGenres(new LinkedHashSet<>());
     }
 }

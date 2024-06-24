@@ -8,12 +8,8 @@ import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.dal.mappers.FilmRowMapper;
-import ru.yandex.practicum.filmorate.dal.mappers.GenreRowMapper;
-import ru.yandex.practicum.filmorate.dal.mappers.MpaRowMapper;
-import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.film.Film;
 import ru.yandex.practicum.filmorate.model.genre.Genre;
-import ru.yandex.practicum.filmorate.model.mpa.Mpa;
 import ru.yandex.practicum.filmorate.storage.FilmStorage;
 
 import java.util.LinkedHashSet;
@@ -38,9 +34,7 @@ public class FilmDbStorage implements FilmStorage {
             LEFT JOIN genres AS g ON (fg.genre_id = g.id)
             """;
 
-        List<Film> films = jdbcOperations.query(sqlQuery, new FilmRowMapper());
-        films.forEach(this::setGenresToFilm);
-        return films;
+        return jdbcOperations.query(sqlQuery, new FilmRowMapper());
     }
 
     @Override
@@ -57,13 +51,7 @@ public class FilmDbStorage implements FilmStorage {
             """;
 
         SqlParameterSource parameters = new MapSqlParameterSource("id", id);
-        List<Film> films = jdbcOperations.query(sqlQuery, parameters, new FilmRowMapper());
-        if (films.isEmpty()) {
-            throw new NotFoundException("Фильм с id = " + id + " не найден");
-        }
-        Film film = films.getFirst();
-        setGenresToFilm(film);
-        return Optional.of(film);
+        return jdbcOperations.query(sqlQuery, parameters, new FilmRowMapper()).stream().findFirst();
     }
 
     @Override
@@ -85,9 +73,7 @@ public class FilmDbStorage implements FilmStorage {
         KeyHolder keyHolder = new GeneratedKeyHolder();
         jdbcOperations.update(sqlQuery, parameters, keyHolder);
         film.setId(Objects.requireNonNull(keyHolder.getKey()).longValue());
-        setMpaToFilm(film);
         updateGenres(film);
-        setGenresToFilm(film);
         return film;
     }
 
@@ -109,10 +95,8 @@ public class FilmDbStorage implements FilmStorage {
                 .addValue("mpa_rating_id", newFilm.getMpa().getId());
 
         jdbcOperations.update(sqlQuery, parameters);
-        setMpaToFilm(newFilm);
         deleteGenres(newFilm);
         updateGenres(newFilm);
-        setGenresToFilm(newFilm);
         return newFilm;
     }
 
@@ -128,8 +112,11 @@ public class FilmDbStorage implements FilmStorage {
         String sqlQuery = """
             SELECT f.id, f.name, f.description, f.release_date, f.duration,
             r.id AS mpa_id, r.name AS mpa_name,
+            g.id AS genre_id, g.name AS genre_name,
             FROM films AS f
             LEFT JOIN mpa_ratings AS r ON (f.mpa_rating_id = r.id)
+            LEFT JOIN films_genres AS fg ON (f.id = fg.film_id)
+            LEFT JOIN genres AS g ON (fg.genre_id = g.id)
             LEFT JOIN (
                 SELECT film_id, COUNT (user_id) AS likes
                 FROM films_likes
@@ -141,19 +128,6 @@ public class FilmDbStorage implements FilmStorage {
 
         SqlParameterSource parameters = new MapSqlParameterSource("count", count);
         return jdbcOperations.query(sqlQuery, parameters, new FilmRowMapper());
-    }
-
-    private void setMpaToFilm(Film film) {
-        String sqlQuery = """
-            SELECT r.id AS mpa_id, r.name AS mpa_name
-            FROM films AS f
-            LEFT JOIN mpa_ratings AS r ON (f.mpa_rating_id = r.id)
-            WHERE f.id = :film_id;
-            """;
-
-        SqlParameterSource parameters = new MapSqlParameterSource("film_id", film.getId());
-        Mpa mpa = jdbcOperations.query(sqlQuery, parameters, new MpaRowMapper()).getFirst();
-        film.setMpa(mpa);
     }
 
     private void deleteGenres(Film film) {
@@ -181,18 +155,5 @@ public class FilmDbStorage implements FilmStorage {
 
             jdbcOperations.batchUpdate(sqlQuery, batchArgs);
         }
-    }
-
-    private void setGenresToFilm(Film film) {
-        String sqlQuery = """
-                SELECT id, name
-                FROM genres WHERE id IN (
-                SELECT genre_id FROM films_genres
-                WHERE film_id = :film_id)
-                """;
-
-        SqlParameterSource parameters = new MapSqlParameterSource("film_id", film.getId());
-        List<Genre> genres = jdbcOperations.query(sqlQuery, parameters, new GenreRowMapper());
-        film.setGenres(new LinkedHashSet<>(genres));
     }
 }

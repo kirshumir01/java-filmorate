@@ -9,8 +9,10 @@ import ru.yandex.practicum.filmorate.dal.mappers.GenreRowMapper;
 import ru.yandex.practicum.filmorate.model.genre.Genre;
 import ru.yandex.practicum.filmorate.storage.GenreStorage;
 
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 @Component
 @RequiredArgsConstructor
@@ -28,5 +30,17 @@ public class GenreDbStorage implements GenreStorage {
         String sqlQuery = "SELECT id, name FROM genres WHERE id = :id";
         SqlParameterSource parameters = new MapSqlParameterSource("id", id);
         return jdbcOperations.query(sqlQuery, parameters, new GenreRowMapper()).stream().findFirst();
+    }
+
+    @Override
+    public Optional<LinkedHashSet<Genre>> getBy(Set<Integer> ids) {
+        LinkedHashSet <Genre> genres = new LinkedHashSet<>();
+        String sqlQuery = "SELECT id, name FROM genres WHERE id = :id";
+        ids.forEach(id -> {
+            SqlParameterSource parameters = new MapSqlParameterSource("id", id);
+            Optional<Genre> genre = jdbcOperations.query(sqlQuery, parameters, new GenreRowMapper()).stream().findFirst();
+            genre.ifPresent(genres::add);
+        });
+        return Optional.of(genres);
     }
 }

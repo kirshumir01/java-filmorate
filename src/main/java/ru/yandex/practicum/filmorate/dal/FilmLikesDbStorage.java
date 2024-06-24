@@ -14,7 +14,7 @@ public class FilmLikesDbStorage implements FilmLikesStorage {
 
     @Override
     public void addLike(long filmId, long userId) {
-        String sqlQuery = "INSERT INTO films_likes (film_id, user_id) VALUES (:film_id, :user_id)";
+        String sqlQuery = "MERGE INTO films_likes (film_id, user_id) VALUES (:film_id, :user_id)";
 
         SqlParameterSource parameters = new MapSqlParameterSource()
                 .addValue("film_id", filmId)
