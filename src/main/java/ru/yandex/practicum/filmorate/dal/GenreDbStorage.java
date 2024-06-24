@@ -34,7 +34,7 @@ public class GenreDbStorage implements GenreStorage {
 
     @Override
     public Optional<LinkedHashSet<Genre>> getBy(Set<Integer> ids) {
-        LinkedHashSet <Genre> genres = new LinkedHashSet<>();
+        LinkedHashSet<Genre> genres = new LinkedHashSet<>();
         String sqlQuery = "SELECT id, name FROM genres WHERE id = :id";
         ids.forEach(id -> {
             SqlParameterSource parameters = new MapSqlParameterSource("id", id);
