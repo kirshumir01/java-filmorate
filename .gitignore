@@ -47,6 +47,3 @@ build/
 
 *.db
 db/*
-
-# other files
-README.md

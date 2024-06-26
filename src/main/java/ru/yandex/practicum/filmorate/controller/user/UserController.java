@@ -1,13 +1,13 @@
 package ru.yandex.practicum.filmorate.controller.user;
 
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import ru.yandex.practicum.filmorate.model.validationgroups.Update;
 import ru.yandex.practicum.filmorate.model.user.User;
+import ru.yandex.practicum.filmorate.model.validationgroups.Update;
 import ru.yandex.practicum.filmorate.service.user.UserService;
 
 import java.util.List;
@@ -16,13 +16,9 @@ import java.util.List;
 @Validated
 @RestController
 @RequestMapping("/users")
+@RequiredArgsConstructor
 public class UserController {
-    UserService userService;
-
-    @Autowired
-    public UserController(UserService userService) {
-        this.userService = userService;
-    }
+    private final UserService userService;
 
     @GetMapping
     public List<User> getAll() {
@@ -31,7 +27,6 @@ public class UserController {
         log.info("Получена информации обо всех пользователях");
         return users;
     }
-
 
     @GetMapping("/{id}")
     public User get(@PathVariable long id) {

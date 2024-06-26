@@ -8,12 +8,16 @@ import jakarta.validation.constraints.Size;
 import lombok.Builder;
 import lombok.Data;
 import org.springframework.format.annotation.DateTimeFormat;
+import ru.yandex.practicum.filmorate.model.genre.Genre;
+import ru.yandex.practicum.filmorate.model.mpa.Mpa;
 import ru.yandex.practicum.filmorate.model.validationgroups.Update;
 import ru.yandex.practicum.filmorate.validator.releasedatevalidator.ReleaseDate;
 
 import java.time.LocalDate;
+import java.util.LinkedHashSet;
 
 @Data
+@Builder(toBuilder = true)
 public class Film {
     @NotNull(groups = {Update.class})
     private Long id;
@@ -32,12 +36,8 @@ public class Film {
     @Positive
     private int duration;
 
-    @Builder
-    public Film(long id, String name, String description, LocalDate releaseDate, int duration) {
-        this.id = id;
-        this.name = name;
-        this.description = description;
-        this.releaseDate = releaseDate;
-        this.duration = duration;
-    }
+    @NotNull
+    private Mpa mpa;
+
+    private LinkedHashSet<Genre> genres;
 }

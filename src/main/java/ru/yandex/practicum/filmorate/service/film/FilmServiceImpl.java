@@ -1,25 +1,26 @@
 package ru.yandex.practicum.filmorate.service.film;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
+import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.film.Film;
-import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
-import ru.yandex.practicum.filmorate.storage.user.UserStorage;
+import ru.yandex.practicum.filmorate.model.genre.Genre;
+import ru.yandex.practicum.filmorate.storage.*;
 
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 public class FilmServiceImpl implements FilmService {
     private final FilmStorage filmStorage;
+    private final FilmLikesStorage filmLikesStorage;
     private final UserStorage userStorage;
-
-
-    @Autowired
-    public FilmServiceImpl(FilmStorage filmStorage, UserStorage userStorage) {
-        this.filmStorage = filmStorage;
-        this.userStorage = userStorage;
-    }
+    private final MpaStorage mpaStorage;
+    private final GenreStorage genreStorage;
 
     @Override
     public List<Film> getAll() {
@@ -28,12 +29,15 @@ public class FilmServiceImpl implements FilmService {
 
     @Override
     public Film get(long id) {
-        checkFilmId(id);
-        return filmStorage.get(id);
+        return filmStorage.get(id).orElseThrow(
+                () -> new NotFoundException("Фильм с id = " + id + " не найден"));
     }
 
     @Override
     public Film create(Film film) {
+        checkMpa(film);
+        checkGenres(film);
+        setGenres(film);
         return filmStorage.create(film);
     }
 
@@ -52,14 +56,14 @@ public class FilmServiceImpl implements FilmService {
     public void addLike(long filmId, long userId) {
         checkFilmId(filmId);
         checkUserId(userId);
-        filmStorage.addLike(filmId, userId);
+        filmLikesStorage.addLike(filmId, userId);
     }
 
     @Override
     public void deleteLike(long filmId, long userId)  {
         checkFilmId(filmId);
         checkUserId(userId);
-        filmStorage.deleteLike(filmId, userId);
+        filmLikesStorage.deleteLike(filmId, userId);
     }
 
     @Override
@@ -67,15 +71,39 @@ public class FilmServiceImpl implements FilmService {
         return filmStorage.getPopular(count);
     }
 
-    private void checkFilmId(Long id) {
-        if (filmStorage.get(id) == null) {
-            throw new NotFoundException("Фильм с id = " + id + " не найден");
+    private void checkFilmId(long filmId) {
+        if (filmStorage.get(filmId).isEmpty()) {
+            throw new NotFoundException("Фильм с id = " + filmId + " не найден");
         }
     }
 
-    private void checkUserId(Long id) {
-        if (userStorage.get(id) == null) {
-            throw new NotFoundException("Пользователь с id = " + id + " не найден");
+    private void checkUserId(long userId) {
+        if (userStorage.get(userId).isEmpty()) {
+            throw new NotFoundException("Пользователь с id = " + userId + " не найден");
         }
+    }
+
+    private void checkMpa(Film film) {
+        if (mpaStorage.get(film.getMpa().getId()).isEmpty()) {
+            throw new ValidationException("Информация о рейтинге с id = " + film.getMpa().getId() + " отсутствует.");
+        }
+    }
+
+    private void checkGenres(Film film) {
+        if (film.getGenres() != null) {
+            Set<Integer> ids = film.getGenres().stream().map(Genre::getId).collect(Collectors.toSet());
+            genreStorage.getBy(ids).ifPresent(genres -> {
+                if (genres.isEmpty()) {
+                    throw new ValidationException("Информация о жанрах отсутствует.");
+                }
+            });
+        }
+    }
+
+    private void setGenres(Film film) {
+        if (film.getGenres() != null) {
+            Set<Integer> ids = film.getGenres().stream().map(Genre::getId).collect(Collectors.toSet());
+            genreStorage.getBy(ids).ifPresent(film::setGenres);
+        } else film.setGenres(new LinkedHashSet<>());
     }
 }
