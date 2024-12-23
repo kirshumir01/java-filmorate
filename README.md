@@ -23,7 +23,7 @@ ___
 ## Схема базы данных приложения (ER-диаграмма)
 
 ---
-![ER-diagram](https://github.com/kirshumir01/java-filmorate/blob/add-database/java-filmorate-diagram.png?raw=true)
+![ER-diagram](https://github.com/kirshumir01/java-filmorate/blob/main/java-filmorate-diagram.png)
 
 ## Используемые технологии
 
